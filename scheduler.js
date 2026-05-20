@@ -9,7 +9,7 @@ async function callAI(prompt, webSearch = false) {
   if (!apiKey) return null;
   try {
     const body = {
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 600,
       system: 'You are a B2B sales intelligence researcher for Rithum, a retail commerce platform. Be specific, concise and actionable. Always use web search for current information.',
       messages: [{ role: 'user', content: prompt }]
