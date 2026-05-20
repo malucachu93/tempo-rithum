@@ -1222,7 +1222,7 @@ async function gSin(dr) {
   let res='';
   if(dr&&!hk){ot.innerHTML='<span class="loading">Finding signals</span>';res=await ai(`Find 2-3 recent signals about ${ac} UK retailer for B2B outreach hooks. Real names, dates, figures.`,'B2B sales researcher. Search web.',true);ot.innerHTML='<span class="loading">Writing</span>';}
   const p=`Write a ${tl[ty]} for:\nAccount: ${ac}\nContact: ${co||'unknown'}\nHook: ${hk||(res?'use signals below':'no hook')}\nContext: ${ct||curAcct?.context||'cold outreach'}\n${res?`\nLive signals:\n${res}`:''}\nWrite only the copy.`;
-  ot.textContent=await ai(p,SYS);
+  ot.innerHTML=await ai(p,SYS);
 }
 
 // IDEAS
