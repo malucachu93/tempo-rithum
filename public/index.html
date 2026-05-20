@@ -1322,7 +1322,7 @@ async function hRep(v) {
   od.style.display='block';ot.innerHTML='<span class="loading">Drafting</span>';
   const gs={positive:'They are interested. Move toward next step, ask for interest not a meeting time.',lukewarm:'Not no but not yes. Acknowledge, add value, re-frame urgency.',objection_price:'Do not defend price. Re-frame around Return, quantify cost of the problem.',objection_timing:'Acknowledge timing. Ask what would need to change. Stay in play.',objection_incumbent:'Do not attack current solution. Ask about flexibility — can they run both models?',refer:'Thank them. Ask for warm intro. Keep them as champion.',ghosted:'Re-engage with new angle. Curiosity not guilt.'};
   const p=`Draft a RWOS-compliant ${v?'3 variants of a ':''}follow-on response:\nAccount: ${ac}\nContact: ${co}\nReply type: ${replyType}\nTheir reply: ${ry||'no reply'}\nContext: ${ct}\nGuide: ${gs[replyType]}\n${v?'Number variants 1-3 with labels.':''}\nShort, specific, RWOS-compliant.`;
-  ot.textContent=await ai(p,SYS);
+  ot.innerHTML=await ai(p,SYS);
 }
 
 // SUBJECT A/B
