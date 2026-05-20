@@ -1263,7 +1263,7 @@ async function gIdea(v) {
   const tl={cold_email:'cold email subject + body 100 words max',li_connect:'LinkedIn connection 300 chars',li_msg:'LinkedIn message 500 chars',breakup:'break-up email',bump:'bump email 1-2 sentences',multi:'a cold email AND LinkedIn connection request',subjects:'5 subject line options 1-4 words lower case each',openers:'5 opening line options under 20 words starting with their world'};
   const tls={warm:'Warmer and personal.',prov:'Provocative, challenge their thinking.',data:'Lead with a specific data point.',peer:'Lead with peer proof.'};
   const p=`Shape this idea into RWOS-compliant ${tl[ty]}:\nIdea: ${id}\nAccount: ${ac||'a UK retailer'}\n${to?`Tone: ${tls[to]}`:''}\n${v?'Give 3 distinct numbered variants.':''}\nOnly the copy.`;
-  ot.textContent=await ai(p,SYS);
+  ot.innerHTML=await ai(p,SYS);
 }
 
 // RWOS CHECKER
