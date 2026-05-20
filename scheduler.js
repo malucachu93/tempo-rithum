@@ -1,15 +1,9 @@
 const cron = require('node-cron');
 const fetch = require('node-fetch');
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
-// Edit SCAN_TIME to change when the daily scan runs (24hr format, server timezone)
-// Default: 7:00am every weekday (Mon-Fri)
-// Format: 'minute hour * * day-of-week' (0=Sun, 1=Mon ... 5=Fri, 6=Sat)
 const SCAN_TIME = '0 7 * * 1-5';
-
 const COMPETITORS = ['Mirakl', 'Marketplacer', 'VirtualStock', 'Tradebyte', 'ChannelEngine'];
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 async function callAI(prompt, webSearch = false) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
@@ -38,14 +32,12 @@ function timestamp() {
   return new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'short', timeStyle: 'short' });
 }
 
-// ─── ACCOUNT SCAN ─────────────────────────────────────────────────────────────
 async function scanAccount(account) {
   console.log(`  → Scanning ${account.name}...`);
   const prompt = `Find the latest B2B sales signals about ${account.name} (UK retailer) in the last 7 days. 
 Focus on: leadership changes, financial results, hiring, LinkedIn posts, tech announcements, partnerships.
 Return 3-5 bullet points maximum. Each bullet: what happened, why it matters for sales, signal strength (High/Medium/Low).
 Be specific — real names, dates, figures. If nothing significant found in last 7 days, say so briefly.`;
-
   const result = await callAI(prompt, true);
   return {
     scannedAt: new Date().toISOString(),
@@ -55,7 +47,6 @@ Be specific — real names, dates, figures. If nothing significant found in last
   };
 }
 
-// ─── COMPETITOR SCAN ──────────────────────────────────────────────────────────
 async function scanCompetitors(allAccounts) {
   console.log(`  → Scanning competitors...`);
   const acctNames = allAccounts.map(a => a.name).join(', ') || 'UK retailers';
@@ -69,7 +60,6 @@ Find anything published or announced in the last 7 days:
 
 Return as bullet points grouped by competitor. Max 2-3 bullets per competitor. Include signal strength (High/Med/Low).
 If nothing new this week for a competitor, skip them.`;
-
   const result = await callAI(prompt, true);
   return {
     scannedAt: new Date().toISOString(),
@@ -77,16 +67,13 @@ If nothing new this week for a competitor, skip them.`;
   };
 }
 
-// ─── DIGEST BUILDER ───────────────────────────────────────────────────────────
 function buildDigest(repName, accountResults, competitorResult) {
   const highSignals = accountResults.filter(r =>
     r.content && r.content.toLowerCase().includes('high')
   );
-
   let digest = `TEMPO DAILY DIGEST — ${timestamp()}\n`;
   digest += `For: ${repName}\n`;
   digest += `${'─'.repeat(50)}\n\n`;
-
   if (highSignals.length > 0) {
     digest += `🔴 HIGH PRIORITY SIGNALS (${highSignals.length})\n\n`;
     highSignals.forEach(r => {
@@ -94,108 +81,96 @@ function buildDigest(repName, accountResults, competitorResult) {
     });
     digest += `${'─'.repeat(50)}\n\n`;
   }
-
   digest += `📡 ALL ACCOUNT SIGNALS\n\n`;
   accountResults.forEach(r => {
     if (r.content && !r.content.includes('No new signals')) {
       digest += `${r.accountName}\n${r.content}\n\n`;
     }
   });
-
   digest += `${'─'.repeat(50)}\n\n`;
   digest += `🏴 COMPETITOR INTELLIGENCE\n\n`;
   digest += competitorResult.content + '\n\n';
   digest += `${'─'.repeat(50)}\n`;
   digest += `Open Tempo to act on these signals: ${process.env.APP_URL || 'http://localhost:3000'}\n`;
-
   return digest;
 }
 
-// ─── MAIN SCHEDULER FUNCTION ──────────────────────────────────────────────────
+async function runScan(accountsDB, saveData, TEAM, username, role) {
+  if (!accountsDB._scans) accountsDB._scans = {};
+
+  const accounts = role === 'Manager'
+    ? Object.entries(accountsDB).filter(([k]) => k !== '_scans').flatMap(([, v]) => v)
+    : (accountsDB[username] || []);
+
+  if (accounts.length === 0) {
+    console.log('No accounts to scan.');
+    return;
+  }
+
+  const seen = new Set();
+  const unique = accounts.filter(a => !seen.has(a.id) && seen.add(a.id));
+  const results = [];
+
+  for (const account of unique) {
+    const result = await scanAccount(account);
+    results.push(result);
+    Object.keys(accountsDB).forEach(u => {
+      if (u === '_scans') return;
+      const idx = (accountsDB[u] || []).findIndex(a => a.id === account.id);
+      if (idx !== -1) {
+        if (!accountsDB[u][idx].autoSignals) accountsDB[u][idx].autoSignals = [];
+        accountsDB[u][idx].autoSignals.unshift({ text: result.content, scannedAt: result.scannedAt });
+        accountsDB[u][idx].autoSignals = accountsDB[u][idx].autoSignals.slice(0, 5);
+      }
+    });
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  const competitorResult = await scanCompetitors(unique);
+  accountsDB._scans.lastCompetitorScan = competitorResult;
+
+  if (!accountsDB._scans.digests) accountsDB._scans.digests = {};
+
+  if (role === 'Manager') {
+    Object.keys(TEAM).forEach(u => {
+      const repAccounts = accountsDB[u] || [];
+      const repResults = results.filter(r => repAccounts.some(a => a.id === r.accountId));
+      if (!repResults.length) return;
+      accountsDB._scans.digests[u] = {
+        content: buildDigest(TEAM[u].name, repResults, competitorResult),
+        generatedAt: new Date().toISOString()
+      };
+    });
+    accountsDB._scans.digests['_manager'] = {
+      content: buildDigest('Manager', results, competitorResult),
+      generatedAt: new Date().toISOString()
+    };
+  } else {
+    accountsDB._scans.digests[username] = {
+      content: buildDigest(TEAM[username].name, results, competitorResult),
+      generatedAt: new Date().toISOString()
+    };
+  }
+
+  saveData(accountsDB);
+  console.log(`Scan complete — ${unique.length} accounts scanned`);
+}
+
 function startScheduler(accountsDB, saveData, TEAM) {
   console.log(`\n  ✓ Scheduler active — daily scan at ${SCAN_TIME} (weekdays)\n`);
 
   cron.schedule(SCAN_TIME, async () => {
     console.log(`\n[${timestamp()}] Starting daily signal scan...`);
-
-    const allAccounts = Object.values(accountsDB).flat();
-    if (allAccounts.length === 0) {
-      console.log('  No accounts to scan yet. Skipping.');
-      return;
-    }
-
-    // Store scan results in the DB so the app can display them
-    if (!accountsDB._scans) accountsDB._scans = {};
-
-    // Scan each unique account
-    const uniqueAccounts = [];
-    const seen = new Set();
-    allAccounts.forEach(a => {
-      if (!seen.has(a.id)) { seen.add(a.id); uniqueAccounts.push(a); }
-    });
-
-    const accountResults = [];
-    for (const account of uniqueAccounts) {
-      const result = await scanAccount(account);
-      accountResults.push(result);
-      // Save signal back to the account
-      Object.keys(accountsDB).forEach(username => {
-        if (username === '_scans') return;
-        const idx = (accountsDB[username] || []).findIndex(a => a.id === account.id);
-        if (idx !== -1) {
-          if (!accountsDB[username][idx].autoSignals) accountsDB[username][idx].autoSignals = [];
-          accountsDB[username][idx].autoSignals.unshift({
-            text: result.content,
-            scannedAt: result.scannedAt
-          });
-          // Keep only last 5 auto-scans per account
-          accountsDB[username][idx].autoSignals = accountsDB[username][idx].autoSignals.slice(0, 5);
-        }
-      });
-      // Small delay between calls to be kind to the API
-      await new Promise(r => setTimeout(r, 1500));
-    }
-
-    // Scan competitors once (shared across team)
-    const competitorResult = await scanCompetitors(uniqueAccounts);
-    accountsDB._scans.lastCompetitorScan = competitorResult;
-
-    // Build per-rep digests and save them
-    Object.keys(TEAM).forEach(username => {
-      if (TEAM[username].role === 'manager') return;
-      const repAccounts = accountsDB[username] || [];
-      const repResults = accountResults.filter(r =>
-        repAccounts.some(a => a.id === r.accountId)
-      );
-      if (repResults.length === 0) return;
-      const digest = buildDigest(TEAM[username].name, repResults, competitorResult);
-      if (!accountsDB._scans.digests) accountsDB._scans.digests = {};
-      accountsDB._scans.digests[username] = {
-        content: digest,
-        generatedAt: new Date().toISOString()
-      };
-      console.log(`  ✓ Digest ready for ${TEAM[username].name}`);
-    });
-
-    // Manager gets everything
-    const managerDigest = buildDigest('Manager (all accounts)', accountResults, competitorResult);
-    if (!accountsDB._scans.digests) accountsDB._scans.digests = {};
-    accountsDB._scans.digests['_manager'] = {
-      content: managerDigest,
-      generatedAt: new Date().toISOString()
-    };
-
-    saveData(accountsDB);
-    console.log(`[${timestamp()}] Daily scan complete — ${uniqueAccounts.length} accounts scanned\n`);
+    const allAccounts = Object.entries(accountsDB).filter(([k]) => k !== '_scans').flatMap(([, v]) => v);
+    if (allAccounts.length === 0) { console.log('  No accounts to scan yet. Skipping.'); return; }
+    await runScan(accountsDB, saveData, TEAM, null, 'Manager');
+    console.log(`[${timestamp()}] Daily scan complete\n`);
   });
 
-  // Also run a quick health log every hour so you know the scheduler is alive
   cron.schedule('0 * * * *', () => {
-    const totalAccounts = Object.values(accountsDB)
-      .filter((v, k) => k !== '_scans')
-      .flat().length;
+    const totalAccounts = Object.entries(accountsDB).filter(([k]) => k !== '_scans').flatMap(([, v]) => v).length;
     console.log(`[${timestamp()}] Scheduler heartbeat — ${totalAccounts} accounts tracked`);
   });
 }
 
-module.exports = { startScheduler };
+module.exports = { startScheduler, runScan };
