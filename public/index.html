@@ -1452,8 +1452,11 @@ async function ai(prompt, sys, ws=false) {
     if (ws) body.tools = [{type:'web_search_20250305',name:'web_search'}];
     const r = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json','x-token':TOKEN}, body:JSON.stringify(body) });
     const d = await r.json();
-    if (d.error) return 'Error: '+d.error;
-    return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim() || 'No response.';
+    if (d.error) return 'Error: '+(typeof d.error === 'object' ? JSON.stringify(d.error) : d.error);
+    if (d.content && Array.isArray(d.content)) {
+      return d.content.filter(b => b.type === 'text').map(b => b.text).join('').trim() || 'No response.';
+    }
+    return 'No response.';
   } catch(e) { return 'Error: '+e.message; }
 }
 
