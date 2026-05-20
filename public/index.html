@@ -653,6 +653,9 @@ async function doLogin() {
     const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
     if (!r.ok) { document.getElementById('login-err').style.display='block'; return; }
     const d = await r.json();
+    // Normalise role to lowercase 'manager' or 'rep' regardless of how it is
+    // stored in team.config.js (e.g. 'Manager', 'Strategic Account Director').
+    d.role = d.role && d.role.toLowerCase() === 'manager' ? 'manager' : 'rep';
     TOKEN = d.token; USER = d;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
@@ -682,8 +685,16 @@ document.getElementById('li-user').addEventListener('keydown', e => { if(e.key==
 async function loadAccounts() {
   const r = await fetch('/api/accounts', { headers:{'x-token':TOKEN} });
   const d = await r.json();
-  if (USER.role === 'manager') { ALL_ACCOUNTS = d.all; TEAM_INFO = d.teamInfo; }
-  else { ACCOUNTS = d.accounts || []; }
+  if (USER.role === 'manager') {
+    ALL_ACCOUNTS = d.all;
+    // Normalise each team member's role to lowercase 'manager' or 'rep' so
+    // that the manager-dashboard filter (info.role === 'manager') works
+    // regardless of how roles are capitalised in team.config.js.
+    TEAM_INFO = d.teamInfo;
+    Object.values(TEAM_INFO).forEach(m => {
+      m.role = m.role && m.role.toLowerCase() === 'manager' ? 'manager' : 'rep';
+    });
+  } else { ACCOUNTS = d.accounts || []; }
   renderSidebar();
 }
 
