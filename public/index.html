@@ -1454,6 +1454,9 @@ async function ai(prompt, sys, ws=false) {
     const d = await r.json();
     if (d.error) return 'Error: '+(typeof d.error === 'object' ? JSON.stringify(d.error) : d.error);
     if (d.content && Array.isArray(d.content)) {
+      const raw = d.content.filter(b => b.type === 'text').map(b => b.text).join('').trim() || 'No response.';
+      return formatOutput(raw);
+    }
       return d.content.filter(b => b.type === 'text').map(b => b.text).join('').trim() || 'No response.';
     }
     return 'No response.';
