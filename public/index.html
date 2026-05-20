@@ -1448,7 +1448,7 @@ async function submitAdd() {
 // ─── AI ───────────────────────────────────────────────────────────────────────
 async function ai(prompt, sys, ws=false) {
   try {
-    const body = { model:'claude-sonnet-4-5', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] };
+    const body = { model:'claude-haiku-4-5', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] };
     if (ws) body.tools = [{type:'web_search_20250305',name:'web_search'}];
     const r = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json','x-token':TOKEN}, body:JSON.stringify(body) });
     const d = await r.json();
