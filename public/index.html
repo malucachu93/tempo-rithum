@@ -1616,6 +1616,16 @@ Be specific. Use web search. Focus on actionable intelligence that helps the Rit
 
 function cp(id){const el=document.getElementById(id);if(el)navigator.clipboard.writeText(el.textContent).catch(()=>{});}
 function dl(ms){return new Promise(r=>setTimeout(r,ms));}
-</script>
+function formatOutput(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;color:var(--accent);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em">$1</div>')
+    .replace(/^## (.+)$/gm, '<div style="font-size:15px;font-weight:700;color:var(--text);margin:16px 0 8px">$1</div>')
+    .replace(/^# (.+)$/gm, '<div style="font-size:17px;font-weight:700;color:var(--text);margin:16px 0 8px">$1</div>')
+    .replace(/^[-•] (.+)$/gm, '<div style="display:flex;gap:10px;padding:4px 0"><span style="color:var(--accent);flex-shrink:0">▸</span><span>$1</span></div>')
+    .replace(/^\d+\. (.+)$/gm, '<div style="display:flex;gap:10px;padding:4px 0"><span style="color:var(--teal);flex-shrink:0;font-weight:600;font-family:var(--mono)">→</span><span>$1</span></div>')
+    .replace(/\n\n/g, '<div style="height:10px"></div>')
+    .replace(/\n/g, '<br>');
+}</script>
 </body>
 </html>
