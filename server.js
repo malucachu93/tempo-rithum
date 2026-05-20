@@ -5,15 +5,14 @@ const fetch   = require('node-fetch');
 const path    = require('path');
 const fs      = require('fs');
 
-const { team: TEAM }         = require('./team.config');
-const { startScheduler }     = require('./scheduler');
+const { team: TEAM }     = require('./team.config');
+const { startScheduler, runScan } = require('./scheduler');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// PERSISTENCE
 const DATA_FILE = path.join(__dirname, 'data', 'accounts.json');
 
 function loadData() {
@@ -33,7 +32,6 @@ function saveData(data) {
 
 let accountsDB = loadData();
 
-// AUTH
 const sessions = {};
 function makeToken() { return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
@@ -53,10 +51,9 @@ function auth(req, res, next) {
   next();
 }
 
-// ACCOUNTS
 app.get('/api/accounts', auth, (req, res) => {
   const { username, role } = req.user;
-  if (role === 'manager') {
+  if (role === 'Manager') {
     const all = {};
     Object.keys(TEAM).forEach(u => { all[u] = accountsDB[u] || []; });
     res.json({ all, teamInfo: TEAM });
@@ -92,46 +89,28 @@ app.delete('/api/accounts/:id', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-// DAILY DIGEST — reps fetch their own, manager fetches all
 app.get('/api/digest', auth, (req, res) => {
   const { username, role } = req.user;
   const scans = accountsDB._scans || {};
   const digests = scans.digests || {};
-  if (role === 'manager') {
-    res.json({
-      digest: digests['_manager'] || null,
-      lastCompetitorScan: scans.lastCompetitorScan || null,
-      allDigests: digests
-    });
+  if (role === 'Manager') {
+    res.json({ digest: digests['_manager'] || null, lastCompetitorScan: scans.lastCompetitorScan || null, allDigests: digests });
   } else {
-    res.json({
-      digest: digests[username] || null,
-      lastCompetitorScan: scans.lastCompetitorScan || null
-    });
+    res.json({ digest: digests[username] || null, lastCompetitorScan: scans.lastCompetitorScan || null });
   }
 });
 
-// MANUAL TRIGGER — lets a rep or manager force a scan without waiting for 7am
 app.post('/api/scan/trigger', auth, async (req, res) => {
   const { username, role } = req.user;
   res.json({ ok: true, message: 'Scan triggered — results will appear in your digest shortly.' });
-  // Run in background after response sent
-  const { startScheduler: _, ...scheduler } = require('./scheduler');
   try {
-    const accounts = role === 'manager'
-      ? Object.values(accountsDB).filter((v,k) => k !== '_scans').flat()
-      : (accountsDB[username] || []);
-    if (accounts.length === 0) return;
-    console.log(`Manual scan triggered by ${username}`);
-    // Re-use scheduler logic by requiring the module directly
-    const { startScheduler: __, ...rest } = require('./scheduler');
+    await runScan(accountsDB, saveData, TEAM, username, role);
   } catch(e) { console.error('Manual trigger error:', e.message); }
 });
 
-// AI PROXY — API key stays server-side
 app.post('/api/ai', auth, async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey || apiKey.includes('your-key-here')) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured in .env' });
+  if (!apiKey || apiKey.includes('your-key-here')) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -143,12 +122,11 @@ app.post('/api/ai', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// HEALTH CHECK
 app.get('/api/health', (req, res) => res.json({
   status: 'ok',
   apiKeySet: !!(process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key')),
   teamMembers: Object.keys(TEAM).length,
-  totalAccounts: Object.values(accountsDB).filter((v,k) => k !== '_scans').flat().length,
+  totalAccounts: Object.entries(accountsDB).filter(([k]) => k !== '_scans').flatMap(([,v]) => v).length,
   lastScan: (accountsDB._scans || {}).lastCompetitorScan?.scannedAt || 'Never'
 }));
 
@@ -158,9 +136,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('\n  ✓ Tempo by Rithum running');
   console.log(`  ✓ Open: http://localhost:${PORT}`);
-  console.log(`  ✓ API key: ${process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key') ? 'SET ✓' : 'NOT SET — add to .env'}`);
+  console.log(`  ✓ API key: ${process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key') ? 'SET ✓' : 'NOT SET'}`);
   console.log(`  ✓ Team: ${Object.keys(TEAM).length} members`);
-
-  // Start the daily scheduler
   startScheduler(accountsDB, saveData, TEAM);
 });
