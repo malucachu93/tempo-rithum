@@ -7,6 +7,15 @@ const fs      = require('fs');
 
 const { team: TEAM }     = require('./team.config');
 const { startScheduler, runScan } = require('./scheduler');
+const {
+  startOvernightScheduler,
+  scanAllAccounts,
+  generateMorningBriefs,
+  generateCompetitorIntel,
+  generateOutreachPlans,
+  generateDashboardSummary,
+  getCache
+} = require('./lib/overnight-scheduler');
 
 const app = express();
 app.use(cors());
@@ -130,6 +139,86 @@ app.get('/api/health', (req, res) => res.json({
   lastScan: (accountsDB._scans || {}).lastCompetitorScan?.scannedAt || 'Never'
 }));
 
+// ─── Dashboard cache endpoints ────────────────────────────────────────────────
+
+// GET /api/dashboard/:type — return cached data or fall back to live generation
+// Supported types: brief, signals, competitors, outreach, summary
+app.get('/api/dashboard/:type', auth, async (req, res) => {
+  const { type } = req.params;
+  const { username, role } = req.user;
+  const validTypes = ['brief', 'signals', 'competitors', 'outreach', 'summary'];
+  if (!validTypes.includes(type)) return res.status(400).json({ error: 'Unknown cache type' });
+
+  const cacheKey = type === 'summary' ? 'dashboard_summary' : type;
+  const cached = getCache(accountsDB, cacheKey);
+
+  if (cached) {
+    // For per-user types, filter to the requesting user's data
+    if (type === 'brief') {
+      const briefs = cached.data.briefs || {};
+      const userBrief = role === 'manager' ? briefs['_manager'] : briefs[username];
+      return res.json({ cached: true, generated_at: cached.generated_at, expires_at: cached.expires_at, data: userBrief || null });
+    }
+    if (type === 'outreach') {
+      const plans = cached.data.plans || {};
+      const userPlan = plans[username];
+      return res.json({ cached: true, generated_at: cached.generated_at, expires_at: cached.expires_at, data: userPlan || null });
+    }
+    return res.json({ cached: true, generated_at: cached.generated_at, expires_at: cached.expires_at, data: cached.data });
+  }
+
+  // Cache miss — generate live and store
+  res.json({ cached: false, data: null, message: 'No cached data available. Run overnight scan or trigger manually.' });
+});
+
+// GET /api/cache/status — show last scan times and what is cached
+app.get('/api/cache/status', auth, (req, res) => {
+  const cache = accountsDB._cache || {};
+  const scanLog = (accountsDB._scanLog || []).slice(0, 20);
+  const status = {};
+  ['signals', 'brief', 'competitors', 'outreach', 'dashboard_summary'].forEach(k => {
+    const entry = cache[k];
+    status[k] = entry
+      ? { cached: true, generated_at: entry.generated_at, expires_at: entry.expires_at, fresh: new Date(entry.expires_at) > new Date() }
+      : { cached: false };
+  });
+  res.json({ status, recentScans: scanLog });
+});
+
+// GET /api/cache/clear — clear all cached data (for testing)
+app.get('/api/cache/clear', auth, (req, res) => {
+  accountsDB._cache = {};
+  saveData(accountsDB);
+  res.json({ ok: true, message: 'Cache cleared.' });
+});
+
+// POST /api/overnight/trigger/:job — manually trigger a specific overnight job
+app.post('/api/overnight/trigger/:job', auth, async (req, res) => {
+  const { job } = req.params;
+  const jobs = {
+    'account-scans':  () => scanAllAccounts(accountsDB, saveData, TEAM),
+    'briefs':         () => generateMorningBriefs(accountsDB, saveData, TEAM),
+    'competitors':    () => generateCompetitorIntel(accountsDB, saveData, TEAM),
+    'outreach':       () => generateOutreachPlans(accountsDB, saveData, TEAM),
+    'summary':        () => generateDashboardSummary(accountsDB, saveData, TEAM),
+  };
+  if (!jobs[job]) return res.status(400).json({ error: `Unknown job. Valid: ${Object.keys(jobs).join(', ')}` });
+  res.json({ ok: true, message: `Job '${job}' triggered — running in background.` });
+  try { await jobs[job](); } catch (e) { console.error(`Manual trigger error (${job}):`, e.message); }
+});
+
+// POST /api/overnight/trigger-all — run all overnight jobs in sequence (for testing)
+app.post('/api/overnight/trigger-all', auth, async (req, res) => {
+  res.json({ ok: true, message: 'All overnight jobs triggered in sequence — this will take several minutes.' });
+  try {
+    await scanAllAccounts(accountsDB, saveData, TEAM);
+    await generateMorningBriefs(accountsDB, saveData, TEAM);
+    await generateCompetitorIntel(accountsDB, saveData, TEAM);
+    await generateOutreachPlans(accountsDB, saveData, TEAM);
+    await generateDashboardSummary(accountsDB, saveData, TEAM);
+  } catch (e) { console.error('trigger-all error:', e.message); }
+});
+
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const PORT = process.env.PORT || 3000;
@@ -139,4 +228,5 @@ app.listen(PORT, () => {
   console.log(`  ✓ API key: ${process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key') ? 'SET ✓' : 'NOT SET'}`);
   console.log(`  ✓ Team: ${Object.keys(TEAM).length} members`);
   startScheduler(accountsDB, saveData, TEAM);
+  startOvernightScheduler(accountsDB, saveData, TEAM);
 });
