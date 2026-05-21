@@ -7,6 +7,12 @@ const fs      = require('fs');
 
 const { team: TEAM }     = require('./team.config');
 const { startScheduler, runScan } = require('./scheduler');
+const {
+  startOvernightScheduler,
+  getCacheEntry,
+  upsertCache,
+  getPool,
+} = require('./lib/overnight-scheduler');
 
 const app = express();
 app.use(cors());
@@ -89,14 +95,33 @@ app.delete('/api/accounts/:id', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/digest', auth, (req, res) => {
+app.get('/api/digest', auth, async (req, res) => {
   const { username, role } = req.user;
   const scans = accountsDB._scans || {};
   const digests = scans.digests || {};
+
+  // Check overnight cache first
+  const cacheKey = role === 'Manager' ? '_manager' : username;
+  try {
+    const cached = await getCacheEntry(cacheKey, 'brief');
+    if (cached) {
+      return res.json({
+        digest: { content: cached.data.content, generatedAt: cached.data.generatedAt },
+        lastCompetitorScan: scans.lastCompetitorScan || null,
+        cached: true,
+        cacheGeneratedAt: cached.generated_at,
+        ...(role === 'Manager' ? { allDigests: digests } : {}),
+      });
+    }
+  } catch (e) {
+    // Cache unavailable — fall through to legacy path
+  }
+
+  // Fall back to legacy file-based digest
   if (role === 'Manager') {
-    res.json({ digest: digests['_manager'] || null, lastCompetitorScan: scans.lastCompetitorScan || null, allDigests: digests });
+    res.json({ digest: digests['_manager'] || null, lastCompetitorScan: scans.lastCompetitorScan || null, allDigests: digests, cached: false });
   } else {
-    res.json({ digest: digests[username] || null, lastCompetitorScan: scans.lastCompetitorScan || null });
+    res.json({ digest: digests[username] || null, lastCompetitorScan: scans.lastCompetitorScan || null, cached: false });
   }
 });
 
@@ -122,6 +147,145 @@ app.post('/api/ai', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ─── Dashboard cache endpoints ────────────────────────────────────────────────
+
+// Returns which sections are cached and fresh for the logged-in user.
+app.get('/api/dashboard/status', auth, async (req, res) => {
+  const { username, role } = req.user;
+  const cacheKey = role === 'Manager' ? '_manager' : username;
+  const sections = ['signals', 'brief', 'competitors', 'outreach', 'summary'];
+  const status = {};
+
+  for (const section of sections) {
+    try {
+      const key = ['competitors', 'summary'].includes(section) ? '_team' : cacheKey;
+      const cached = await getCacheEntry(
+        section === 'summary' ? '_manager' : key,
+        section
+      );
+      if (cached) {
+        status[section] = {
+          cached: true,
+          generatedAt: cached.generated_at,
+          expiresAt: cached.expires_at,
+        };
+      } else {
+        status[section] = { cached: false };
+      }
+    } catch (e) {
+      status[section] = { cached: false, error: e.message };
+    }
+  }
+
+  // Fetch job statuses
+  const jobStatuses = {};
+  for (const job of sections) {
+    try {
+      const db = getPool();
+      if (db) {
+        const { rows } = await db.query(
+          `SELECT data, generated_at FROM dashboard_cache
+           WHERE account_id = '_job_status' AND data_type = $1 LIMIT 1`,
+          [job]
+        );
+        jobStatuses[job] = rows[0]
+          ? { ...rows[0].data, recordedAt: rows[0].generated_at }
+          : { status: 'never_run' };
+      }
+    } catch (e) {
+      jobStatuses[job] = { status: 'unknown' };
+    }
+  }
+
+  res.json({ sections: status, jobs: jobStatuses, user: username, role });
+});
+
+// Admin endpoint — full cache status (no auth restriction beyond being logged in)
+app.get('/api/admin/cache-status', auth, async (req, res) => {
+  const db = getPool();
+  if (!db) {
+    return res.json({ available: false, reason: 'DATABASE_URL not configured' });
+  }
+  try {
+    const { rows } = await db.query(
+      `SELECT account_id, data_type, generated_at, expires_at,
+              (expires_at > NOW()) AS fresh
+       FROM dashboard_cache
+       WHERE account_id != '_job_status'
+       ORDER BY generated_at DESC`
+    );
+    const { rows: jobs } = await db.query(
+      `SELECT data_type AS job, data, generated_at
+       FROM dashboard_cache
+       WHERE account_id = '_job_status'
+       ORDER BY generated_at DESC`
+    );
+    res.json({
+      available: true,
+      entries: rows,
+      jobs: jobs.map(j => ({ job: j.job, ...j.data, recordedAt: j.generated_at })),
+      totalEntries: rows.length,
+      freshEntries: rows.filter(r => r.fresh).length,
+    });
+  } catch (e) {
+    res.status(500).json({ available: false, error: e.message });
+  }
+});
+
+// Cached signals for a specific account
+app.get('/api/dashboard/signals/:accountId', auth, async (req, res) => {
+  try {
+    const cached = await getCacheEntry(req.params.accountId, 'signals');
+    if (cached) {
+      return res.json({ data: cached.data, cached: true, generatedAt: cached.generated_at });
+    }
+    res.json({ data: null, cached: false });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Cached outreach plan for the logged-in rep
+app.get('/api/dashboard/outreach', auth, async (req, res) => {
+  const { username, role } = req.user;
+  const key = role === 'Manager' ? '_manager' : username;
+  try {
+    const cached = await getCacheEntry(key, 'outreach');
+    if (cached) {
+      return res.json({ data: cached.data, cached: true, generatedAt: cached.generated_at });
+    }
+    res.json({ data: null, cached: false });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Cached competitor intel
+app.get('/api/dashboard/competitors', auth, async (req, res) => {
+  try {
+    const cached = await getCacheEntry('_team', 'competitors');
+    if (cached) {
+      return res.json({ data: cached.data, cached: true, generatedAt: cached.generated_at });
+    }
+    res.json({ data: null, cached: false });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Cached manager summary
+app.get('/api/dashboard/summary', auth, async (req, res) => {
+  try {
+    const cached = await getCacheEntry('_manager', 'summary');
+    if (cached) {
+      return res.json({ data: cached.data, cached: true, generatedAt: cached.generated_at });
+    }
+    res.json({ data: null, cached: false });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({
   status: 'ok',
   apiKeySet: !!(process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key')),
@@ -139,4 +303,5 @@ app.listen(PORT, () => {
   console.log(`  ✓ API key: ${process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-key') ? 'SET ✓' : 'NOT SET'}`);
   console.log(`  ✓ Team: ${Object.keys(TEAM).length} members`);
   startScheduler(accountsDB, saveData, TEAM);
+  startOvernightScheduler(accountsDB, saveData, TEAM);
 });

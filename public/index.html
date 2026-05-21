@@ -352,7 +352,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- SPLASH SCREEN — single random quote shown after login -->
 <div id="splash-screen" class="splash-bg" style="display:none">
   <div class="splash-inner">
     <div class="splash-logo">
@@ -369,16 +369,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="splash-quote-wrap" id="splash-wrap">
       <span class="splash-quote-mark">"</span>
       <span class="splash-emoji" id="splash-emoji">🚀</span>
-      <div class="splash-quote-text" id="splash-quote-text">Loading...</div>
+      <div class="splash-quote-text" id="splash-quote-text"></div>
       <div class="splash-quote-author" id="splash-quote-author"></div>
     </div>
-    <div class="splash-dots" id="splash-dots"></div>
-    <button class="splash-next" id="splash-next-btn" onclick="splashNext()">
-      <span id="splash-btn-label">Next</span> <span>→</span>
+    <button class="splash-next" id="splash-next-btn" onclick="splashDone()">
+      Let's go <span>→</span>
     </button>
-    <span class="splash-skip" onclick="splashDone()">Skip to dashboard</span>
   </div>
 </div>
+
 
 <div id="login-screen" class="login-wrap">
   <div class="login-box">
@@ -757,6 +756,33 @@ const DAILY_QUOTES = [
   {text:"Don't be afraid to give up the good to go for the great. Specifically, give up the generic email for the personalised one.", author:"John D. Rockefeller", emoji:"🌟"},
   {text:"The people who are crazy enough to think they can change the world are the ones who do. You're trying to change how Halfords sells online. Same energy.", author:"Steve Jobs", emoji:"🌍"},
   {text:"Two things are infinite: the universe and human procrastination. Make today the exception. Open Argos. Write the sequence.", author:"Einstein (embellished)", emoji:"♾️"},
+  {text:"Discipline is the bridge between goals and accomplishment. Your goal is Argos. The bridge is the six-touch sequence you haven't sent yet.", author:"Jim Rohn", emoji:"🌉"},
+  {text:"Energy and persistence conquer all things. Especially that gatekeeper at The Very Group who keeps bouncing your emails.", author:"Benjamin Franklin", emoji:"⚡"},
+  {text:"Motivation is what gets you started. Habit is what keeps you going. Build the habit of checking Tempo before you check anything else.", author:"Jim Ryun", emoji:"🔄"},
+  {text:"The difference between a successful person and others is not a lack of strength, not a lack of knowledge, but rather a lack of will. You have the will. Now send the email.", author:"Vince Lombardi", emoji:"🏈"},
+  {text:"Do not wait to strike till the iron is hot; but make it hot by striking. That CDO at Selfridges won't wait forever.", author:"William Butler Yeats", emoji:"🔥"},
+  {text:"It's not about having the right opportunities. It's about handling the opportunities right. That Harrods intro call is your opportunity. Handle it right.", author:"Mark Hunter", emoji:"🎯"},
+  {text:"The most unprofitable item ever manufactured is an excuse. Especially 'I was going to follow up but...' Just follow up.", author:"Charles M. Schwab", emoji:"🚫"},
+  {text:"The key is not to prioritise what's on your schedule, but to schedule your priorities. Priority one: that Argos sequence.", author:"Stephen Covey", emoji:"📅"},
+  {text:"You don't have to be great to start, but you have to start to be great. Open the account. Write the first line. Send it.", author:"Zig Ziglar", emoji:"✨"},
+  {text:"Opportunities are usually disguised as hard work, so most people don't recognise them. The Ocado CFO transition is an opportunity. Recognise it.", author:"Ann Landers", emoji:"🔍"},
+  {text:"The difference between ordinary and extraordinary is that little extra. In sales, that little extra is the personalised hook in line one.", author:"Jimmy Johnson", emoji:"⭐"},
+  {text:"Don't count the days, make the days count. Today counts if you've sent at least one personalised, RWOS-compliant email.", author:"Muhammad Ali", emoji:"🥊"},
+  {text:"A goal without a plan is just a wish. Your goal is to close Argos. Your plan is the seven-touch sequence. Start touch one today.", author:"Antoine de Saint-Exupéry", emoji:"📋"},
+  {text:"The only limit to our realisation of tomorrow will be our doubts of today. Doubt less. Send more.", author:"Franklin D. Roosevelt", emoji:"🌄"},
+  {text:"Success is walking from failure to failure with no loss of enthusiasm. That's literally what a cold outreach sequence is.", author:"Winston Churchill", emoji:"🚶"},
+  {text:"If you are not taking care of your customer, your competitor is. Mirakl is calling your accounts right now. Are you?", author:"Bob Hooey", emoji:"📞"},
+  {text:"Every accomplishment starts with the decision to try. Today's decision: send the break-up email to Wickes. 89% reply rate. Try it.", author:"John F. Kennedy", emoji:"🎯"},
+  {text:"The secret of success is to do the common things uncommonly well. A cold email is common. A personalised, signal-led, RWOS-compliant cold email is uncommon.", author:"John D. Rockefeller Jr.", emoji:"💎"},
+  {text:"Perseverance is not a long race; it is many short races one after the other. Each touch in your sequence is a short race. Run them all.", author:"Walter Elliot", emoji:"🏃"},
+  {text:"Your most unresponsive prospects are your greatest source of sequencing practice. Keep going. The break-up email is coming.", author:"Bill Gates (adapted)", emoji:"📚"},
+  {text:"It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change. Adapt your outreach. Adapt your hooks. Win.", author:"Charles Darwin", emoji:"🦋"},
+  {text:"The harder the conflict, the more glorious the triumph. Closing Selfridges during an ownership transition is hard. That's why it will feel glorious.", author:"Thomas Paine", emoji:"⚔️"},
+  {text:"Believe in yourself and all that you are. Know that there is something inside you greater than any objection, any gatekeeper, any 'not right now'.", author:"Christian D. Larson", emoji:"💫"},
+  {text:"What you do today can improve all your tomorrows. Today: one signal scan, one personalised email, one LinkedIn connection. Tomorrow: momentum.", author:"Ralph Marston", emoji:"🌞"},
+  {text:"The best salespeople know that their expertise can become their enemy in selling. Put your client's world first. Always.", author:"Mark Roberge", emoji:"🤝"},
+  {text:"Winning is not a sometime thing; it's an all-time thing. You don't do things right once in a while, you do them right all the time.", author:"Vince Lombardi", emoji:"🏆"},
+  {text:"Sales is not about selling anymore, but about building trust and educating. Every email you send is a lesson in why Rithum wins.", author:"Siva Devaki", emoji:"🎓"},
 ];
 
 function getDailyQuote() {
@@ -1760,31 +1786,36 @@ async function maybeLoadOwenAccounts() {
   }
 }
 
-// ── SPLASH SCREEN ─────────────────────────────────────────────────────────────
-var splashPool = [], splashIdx = 0;
+
+// ── SPLASH SCREEN — single random quote ───────────────────────────────────────
 function showSplash() {
-  var pool = DAILY_QUOTES.slice(), picks = [];
-  for(var i=0;i<3&&pool.length>0;i++){var x=Math.floor(Math.random()*pool.length);picks.push(pool.splice(x,1)[0]);}
-  splashPool=picks; splashIdx=0;
-  document.getElementById('splash-screen').style.display='flex';
-  renderSplashQ();
+  // Pick one random quote from the full pool
+  var q = DAILY_QUOTES[Math.floor(Math.random() * DAILY_QUOTES.length)];
+  var w = document.getElementById('splash-wrap');
+  document.getElementById('splash-quote-text').textContent = q.text;
+  document.getElementById('splash-quote-author').textContent = '— ' + q.author;
+  document.getElementById('splash-emoji').textContent = q.emoji;
+  w.style.opacity = '0'; w.style.transform = 'translateY(8px)';
+  document.getElementById('splash-screen').style.display = 'flex';
+  setTimeout(function() {
+    w.style.transition = 'opacity .3s, transform .3s';
+    w.style.opacity = '1'; w.style.transform = 'translateY(0)';
+  }, 60);
 }
-function renderSplashQ() {
-  var q=splashPool[splashIdx];
-  var w=document.getElementById('splash-wrap');
-  w.style.opacity='0'; w.style.transform='translateY(6px)';
-  setTimeout(function(){
-    document.getElementById('splash-quote-text').textContent=q.text;
-    document.getElementById('splash-quote-author').textContent='— '+q.author;
-    document.getElementById('splash-emoji').textContent=q.emoji;
-    document.getElementById('splash-btn-label').textContent=splashIdx<splashPool.length-1?'Next':"Let's go";
-    document.getElementById('splash-dots').innerHTML=splashPool.map(function(_,i){return '<div class="splash-dot'+(i===splashIdx?' active':'')+'"></div>';}).join('');
-    w.style.opacity='1'; w.style.transform='translateY(0)';
-  },200);
+function splashDone() {
+  var el = document.getElementById('splash-screen');
+  el.classList.add('hiding');
+  setTimeout(function() { el.style.display = 'none'; el.classList.remove('hiding'); }, 400);
 }
-function splashNext(){if(splashIdx<splashPool.length-1){splashIdx++;renderSplashQ();}else splashDone();}
-function splashDone(){var el=document.getElementById('splash-screen');el.classList.add('hiding');setTimeout(function(){el.style.display='none';el.classList.remove('hiding');},400);}
-document.addEventListener('keydown',function(e){var s=document.getElementById('splash-screen');if(s&&s.style.display!=='none'){if(e.key==='ArrowRight'||e.key==='Enter'){e.preventDefault();splashNext();}else if(e.key==='Escape')splashDone();}});
+document.addEventListener('keydown', function(e) {
+  var s = document.getElementById('splash-screen');
+  if (s && s.style.display !== 'none') {
+    if (e.key === 'Enter' || e.key === 'Escape' || e.key === 'ArrowRight') {
+      e.preventDefault(); splashDone();
+    }
+  }
+});
+
 
 // ── WIZARD ─────────────────────────────────────────────────────────────────────
 var wizStep2=0, wizAdded=[], wizCust={name:'',status:'cold',persona:'',context:'',pain:''};
