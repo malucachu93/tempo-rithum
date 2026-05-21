@@ -372,13 +372,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="splash-quote-text" id="splash-quote-text">Loading...</div>
       <div class="splash-quote-author" id="splash-quote-author"></div>
     </div>
-    <div class="splash-dots" id="splash-dots"></div>
-    <button class="splash-next" id="splash-next-btn" onclick="splashNext()">
-      <span id="splash-btn-label">Next</span> <span>→</span>
+    <button class="splash-next" id="splash-next-btn" onclick="splashDone()">
+      Let's go <span>→</span>
     </button>
     <span class="splash-skip" onclick="splashDone()">Skip to dashboard</span>
   </div>
 </div>
+
 
 <div id="login-screen" class="login-wrap">
   <div class="login-box">
@@ -757,6 +757,34 @@ const DAILY_QUOTES = [
   {text:"Don't be afraid to give up the good to go for the great. Specifically, give up the generic email for the personalised one.", author:"John D. Rockefeller", emoji:"🌟"},
   {text:"The people who are crazy enough to think they can change the world are the ones who do. You're trying to change how Halfords sells online. Same energy.", author:"Steve Jobs", emoji:"🌍"},
   {text:"Two things are infinite: the universe and human procrastination. Make today the exception. Open Argos. Write the sequence.", author:"Einstein (embellished)", emoji:"♾️"},
+  {text:"Discipline is the bridge between goals and accomplishment. Your goal is Argos. The bridge is six well-timed touches.", author:"Jim Rohn", emoji:"🌉"},
+  {text:"The difference between ordinary and extraordinary is that little extra. In sales, that extra is the personalised opener.", author:"Jimmy Johnson", emoji:"✨"},
+  {text:"Energy and persistence conquer all things. Especially the gatekeeper at The Very Group.", author:"Benjamin Franklin", emoji:"⚡"},
+  {text:"Do not wait to strike till the iron is hot, but make it hot by striking. That CDO at Harrods won't call you first.", author:"W.B. Yeats", emoji:"🔥"},
+  {text:"The secret to success is to know something nobody else knows. Like the fact that Ocado's CFO is leaving. That's your window.", author:"Aristotle Onassis", emoji:"🔑"},
+  {text:"Opportunities don't happen. You create them. Specifically, you create them by sending the bump email on day three.", author:"Chris Grosser", emoji:"🎲"},
+  {text:"It's not about having the right opportunities. It's about handling the opportunities right. Especially the lukewarm reply.", author:"Mark Hunter", emoji:"🎯"},
+  {text:"Sales are contingent upon the attitude of the salesman, not the attitude of the prospect. Send the email. Their mood is not your problem.", author:"W. Clement Stone", emoji:"😤"},
+  {text:"The best salespeople know that their expertise can become their enemy in selling. Stop pitching Rithum. Start asking about their world.", author:"Mike Bosworth", emoji:"🧠"},
+  {text:"Make a customer, not a sale. The sale follows. Especially when you've multithreaded three stakeholders at Selfridges.", author:"Katherine Barchetti", emoji:"🤝"},
+  {text:"Every sale has five basic obstacles: no need, no money, no hurry, no desire, no trust. Your job today is to remove one of them.", author:"Zig Ziglar", emoji:"🚧"},
+  {text:"You don't close a sale, you open a relationship. Unless it's a break-up email — then you close the loop and open an 89% reply rate.", author:"Patricia Fripp", emoji:"💼"},
+  {text:"The most unprofitable item ever manufactured is an excuse. Especially 'I was going to email Wickes but I ran out of time.'", author:"B.C. Forbes", emoji:"🚫"},
+  {text:"Motivation is what gets you started. Habit is what keeps you going. The habit is checking Tempo every morning at 8am.", author:"Jim Ryun", emoji:"⏰"},
+  {text:"A goal without a plan is just a wish. A plan without a sequence is just a list. Build the sequence. Send the sequence.", author:"Antoine de Saint-Exupéry", emoji:"📋"},
+  {text:"The key is not to prioritise what's on your schedule, but to schedule your priorities. Priority one: Argos. Schedule it now.", author:"Stephen Covey", emoji:"📅"},
+  {text:"You are never too old to set another goal or to dream a new dream. You are, however, too old to send a generic cold email.", author:"C.S. Lewis", emoji:"🌠"},
+  {text:"Winning is not a sometime thing; it's an all-time thing. You don't win once in a while. You send the follow-up every time.", author:"Vince Lombardi", emoji:"🏈"},
+  {text:"The will to win, the desire to succeed, the urge to reach your full potential — these are the keys. Also: lower case subject lines.", author:"Confucius", emoji:"🗝️"},
+  {text:"Don't limit your challenges. Challenge your limits. Specifically, challenge the limit of how many accounts you can multithread this week.", author:"Jerry Dunn", emoji:"💥"},
+  {text:"If you're going through hell, keep going. If you're going through a cold outreach sequence, keep going. Touch six is where it gets interesting.", author:"Winston Churchill", emoji:"🔥"},
+  {text:"The only place where success comes before work is in the dictionary. And in your pipeline, if you haven't sent the sequence yet.", author:"Vidal Sassoon", emoji:"📖"},
+  {text:"Believe in yourself and all that you are. Know that there is something inside you greater than any objection. Even 'we already have a solution.'", author:"Christian D. Larson", emoji:"💫"},
+  {text:"Start where you are. Use what you have. Do what you can. Today that means: open Tempo, pick your top account, write the opener.", author:"Arthur Ashe", emoji:"🎾"},
+  {text:"The secret of getting things done is to act. Not to plan to act. Not to think about acting. To actually send the email.", author:"Dante Alighieri (probably)", emoji:"⚡"},
+  {text:"Great things are done by a series of small things brought together. Six touches. Twenty-eight days. One closed won deal.", author:"Vincent Van Gogh", emoji:"🎨"},
+  {text:"You have to expect things of yourself before you can do them. Expect to close Argos. Then go do the work that makes it happen.", author:"Michael Jordan", emoji:"🏀"},
+  {text:"The harder the conflict, the greater the triumph. The harder the account, the sweeter the commission. Looking at you, Selfridges.", author:"Thomas Paine", emoji:"⚔️"},
 ];
 
 function getDailyQuote() {
@@ -1761,30 +1789,31 @@ async function maybeLoadOwenAccounts() {
 }
 
 // ── SPLASH SCREEN ─────────────────────────────────────────────────────────────
-var splashPool = [], splashIdx = 0;
 function showSplash() {
-  var pool = DAILY_QUOTES.slice(), picks = [];
-  for(var i=0;i<3&&pool.length>0;i++){var x=Math.floor(Math.random()*pool.length);picks.push(pool.splice(x,1)[0]);}
-  splashPool=picks; splashIdx=0;
-  document.getElementById('splash-screen').style.display='flex';
-  renderSplashQ();
+  // Pick one random quote from the full pool
+  var q = DAILY_QUOTES[Math.floor(Math.random() * DAILY_QUOTES.length)];
+  var w = document.getElementById('splash-wrap');
+  w.style.opacity = '0'; w.style.transform = 'translateY(6px)';
+  document.getElementById('splash-screen').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('splash-quote-text').textContent = q.text;
+    document.getElementById('splash-quote-author').textContent = '— ' + q.author;
+    document.getElementById('splash-emoji').textContent = q.emoji;
+    w.style.opacity = '1'; w.style.transform = 'translateY(0)';
+  }, 150);
 }
-function renderSplashQ() {
-  var q=splashPool[splashIdx];
-  var w=document.getElementById('splash-wrap');
-  w.style.opacity='0'; w.style.transform='translateY(6px)';
-  setTimeout(function(){
-    document.getElementById('splash-quote-text').textContent=q.text;
-    document.getElementById('splash-quote-author').textContent='— '+q.author;
-    document.getElementById('splash-emoji').textContent=q.emoji;
-    document.getElementById('splash-btn-label').textContent=splashIdx<splashPool.length-1?'Next':"Let's go";
-    document.getElementById('splash-dots').innerHTML=splashPool.map(function(_,i){return '<div class="splash-dot'+(i===splashIdx?' active':'')+'"></div>';}).join('');
-    w.style.opacity='1'; w.style.transform='translateY(0)';
-  },200);
+function splashDone() {
+  var el = document.getElementById('splash-screen');
+  el.classList.add('hiding');
+  setTimeout(function() { el.style.display = 'none'; el.classList.remove('hiding'); }, 400);
 }
-function splashNext(){if(splashIdx<splashPool.length-1){splashIdx++;renderSplashQ();}else splashDone();}
-function splashDone(){var el=document.getElementById('splash-screen');el.classList.add('hiding');setTimeout(function(){el.style.display='none';el.classList.remove('hiding');},400);}
-document.addEventListener('keydown',function(e){var s=document.getElementById('splash-screen');if(s&&s.style.display!=='none'){if(e.key==='ArrowRight'||e.key==='Enter'){e.preventDefault();splashNext();}else if(e.key==='Escape')splashDone();}});
+document.addEventListener('keydown', function(e) {
+  var s = document.getElementById('splash-screen');
+  if (s && s.style.display !== 'none') {
+    if (e.key === 'Enter' || e.key === 'Escape' || e.key === 'ArrowRight') { e.preventDefault(); splashDone(); }
+  }
+});
+
 
 // ── WIZARD ─────────────────────────────────────────────────────────────────────
 var wizStep2=0, wizAdded=[], wizCust={name:'',status:'cold',persona:'',context:'',pain:''};
