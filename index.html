@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempo — Rithum AI Prospecting</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c10;--bg2:#111318;--bg3:#181b22;--bg4:#1e222b;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eaf0;--text2:#8b90a0;--text3:#555a6a;--accent:#7537d6;--accent2:#5a1fb8;--teal:#2dd4aa;--amber:#f5a623;--pink:#e05fd0;--green:#4caf82;--red:#e05f5f;--r:10px;--rs:6px;--f:'DM Sans',sans-serif;--mono:'DM Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f);font-size:14px;overflow:hidden}
+
+/* LOGIN */
+.login-wrap{height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:40px;width:380px}
+.login-logo{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.login-title{font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.login-err{font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.inp{width:100%;padding:10px 14px;font-size:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-family:var(--f);margin-bottom:10px;transition:border-color .15s}
+.inp:focus{outline:none;border-color:var(--accent)}
+.inp::placeholder{color:var(--text3)}
+.lbtn{width:100%;padding:12px;font-size:13px;font-weight:600;background:#7537d6;color:#fff;border:none;border-radius:var(--rs);cursor:pointer;font-family:var(--f);transition:background .15s}
+.lbtn:hover{background:#5a1fb8}
+
+/* APP SHELL */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sb-top{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.sb-brand{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.sb-user{font-size:12px;color:var(--text2);margin-top:4px;display:flex;align-items:center;gap:6px}
+.sb-role{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.role-mgr{background:rgba(117,55,214,.15);color:#b388f7;border:1px solid rgba(117,55,214,.25)}
+.role-rep{background:rgba(117,55,214,.12);color:#b388f7;border:1px solid rgba(117,55,214,.2)}
+.sb-sect{padding:14px 18px 5px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.sb-nav{padding:7px 18px;font-size:12px;cursor:pointer;color:var(--text2);border-left:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:8px}
+.sb-nav:hover{color:var(--text);background:var(--bg3)}
+.sb-nav.active{color:var(--text);border-left-color:var(--accent);background:var(--bg3)}
+.sb-nav-icon{font-size:13px;width:16px;text-align:center}
+.sb-scroll{overflow-y:auto;flex:1}
+.sb-scroll::-webkit-scrollbar{width:3px}
+.sb-scroll::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+.sb-acct{padding:6px 18px 6px 28px;font-size:12px;cursor:pointer;color:var(--text2);border-left:2px solid transparent;transition:all .15s;display:flex;flex-direction:column;gap:1px}
+.sb-acct:hover{color:var(--text);background:var(--bg3)}
+.sb-acct.active{color:var(--text);border-left-color:var(--accent);background:var(--bg3)}
+.sb-acct .an{font-weight:500;font-size:12px}
+.sb-acct .at{font-size:10px}
+.sb-bottom{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px}
+
+/* STATUS TYPES */
+.t-open{color:#7537d6}.t-eu{color:var(--amber)}.t-cold{color:var(--text3)}.t-won{color:var(--teal)}.t-nurture{color:var(--pink)}
+
+/* TOPBAR */
+.topbar{padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg2);flex-shrink:0}
+.topbar-name{font-size:15px;font-weight:600;flex:1}
+.pill{display:inline-block;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:500}
+.p-blue{background:rgba(117,55,214,.15);color:#b388f7;border:1px solid rgba(117,55,214,.2)}
+.p-teal{background:rgba(45,212,170,.12);color:var(--teal);border:1px solid rgba(45,212,170,.2)}
+.p-amber{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.p-pink{background:rgba(224,95,208,.12);color:var(--pink);border:1px solid rgba(224,95,208,.2)}
+.p-gray{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border)}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;flex-shrink:0}
+.tabs::-webkit-scrollbar{height:0}
+.tab{padding:10px 15px;font-size:12px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;position:relative}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.tab .nd{position:absolute;top:8px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--teal)}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:20px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* CARDS & FORMS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.card-h{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.hint{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.field input,.field textarea,.field select{padding:8px 12px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--f);width:100%;transition:border-color .15s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);background:var(--bg4)}
+.field select option{background:var(--bg3)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{padding:8px 16px;font-size:12px;font-weight:500;border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;font-family:var(--f)}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn-p{background:#7537d6;color:#fff;border-color:#7537d6}
+.btn-p:hover{background:#5a1fb8;border-color:#5a1fb8;color:#fff}
+.btn-danger{border-color:rgba(224,95,95,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(224,95,95,.1)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.out{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:16px;font-size:14px;line-height:1.9;color:var(--text);font-family:var(--f);min-height:60px}
+.oh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ol{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.cpbtn{padding:3px 9px;font-size:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:transparent;color:var(--text3);font-family:var(--f);transition:all .15s}
+.cpbtn:hover{background:var(--bg4);color:var(--text2)}
+
+/* TOUCH CARDS */
+.tc{border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.th{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--bg3);transition:background .15s}
+.th:hover{background:var(--bg4)}
+.td-day{font-size:10px;color:var(--text3);min-width:44px;font-weight:600;font-family:var(--mono)}
+.tn{font-size:12px;font-weight:500;flex:1;color:var(--text)}
+.tdn{font-size:10px;color:var(--teal);font-weight:600}
+.ct{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.ce{background:rgba(117,55,214,.15);color:#b388f7}
+.cl{background:rgba(45,212,170,.12);color:var(--teal)}
+.cm{background:rgba(224,95,208,.12);color:var(--pink)}
+.tb{display:none;padding:14px;border-top:1px solid var(--border);background:var(--bg2)}
+.tb.open{display:block}
+.tg{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:10px;padding:8px 12px;background:var(--bg3);border-radius:var(--rs);border-left:2px solid var(--accent)}
+
+/* SIGNALS */
+.sr{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.sd{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.st{flex:1;font-size:12px;line-height:1.6}
+
+/* SCORE */
+.sbig{text-align:center;padding:20px;border-radius:var(--r);margin-bottom:14px}
+.snum{font-size:48px;font-weight:600;line-height:1;font-family:var(--mono)}
+.srow{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.spill{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;min-width:52px;text-align:center;flex-shrink:0}
+.sp{background:rgba(76,175,130,.15);color:var(--green);border:1px solid rgba(76,175,130,.2)}
+.sw{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.sf{background:rgba(224,95,95,.12);color:var(--red);border:1px solid rgba(224,95,95,.2)}
+
+/* REPLY CHIPS */
+.chip{padding:6px 14px;font-size:11px;border-radius:20px;border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;font-family:var(--f);font-weight:500}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* SUBJECT ROWS */
+.svrow{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--rs);margin-bottom:6px;background:var(--bg3)}
+.svtag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);min-width:68px;text-align:center;flex-shrink:0}
+.svtxt{flex:1;font-size:12px;font-family:var(--mono);color:var(--text)}
+
+/* IDEA TAGS */
+.itag{display:inline-block;font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);cursor:pointer;color:var(--text2);margin:3px;transition:all .15s}
+.itag:hover{border-color:var(--accent);color:var(--accent);background:rgba(117,55,214,.08)}
+
+/* RULES */
+.ri{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ri:last-child{border-bottom:none}
+.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.rtxt{font-size:12px;color:var(--text2);line-height:1.5}
+.rtxt strong{color:var(--text);font-weight:500}
+
+/* STAT GRID */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
+.sv{font-size:24px;font-weight:600;font-family:var(--mono)}
+
+/* REP TABLE */
+.rep-table{width:100%;border-collapse:collapse}
+.rep-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.rep-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:top}
+.rep-table tr:last-child td{border-bottom:none}
+.rep-table tr:hover td{background:var(--bg3)}
+
+/* ACCOUNT CARD */
+.ac-card{border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;background:var(--bg2);display:flex;align-items:flex-start;gap:14px;transition:border-color .15s}
+.ac-card:hover{border-color:var(--border2)}
+.ac-avatar{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ac-info{flex:1;min-width:0}
+.ac-name{font-size:13px;font-weight:600}
+.ac-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.ac-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* ADD ACCOUNT MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;width:520px;max-width:95vw;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:20px}
+
+/* HOOK BANNER */
+.hb{background:rgba(45,212,170,.08);border:1px solid rgba(45,212,170,.2);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--teal);margin-bottom:12px;display:flex;align-items:flex-start;gap:10px}
+
+/* LOADING */
+.loading::after{content:'';animation:ld 1.2s steps(4,end) infinite}
+@keyframes ld{0%,20%{content:''}40%{content:'.'}60%{content:'..'}80%,100%{content:'...'}}
+
+/* PRIORITY ROW */
+.pr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.pr:last-child{border-bottom:none}
+.pr-acct{font-size:12px;font-weight:600;min-width:140px}
+.pr-sig{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+
+/* REP SECTION IN MANAGER VIEW */
+.rep-section{margin-bottom:20px}
+.rep-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;cursor:pointer}
+.rep-header:hover{background:var(--bg4)}
+.rep-header-name{font-size:13px;font-weight:600;flex:1}
+.rep-body{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.rep-body.closed{display:none}
+
+.wizard-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;font-family:var(--f)}
+.wizard{background:#111318;border:1px solid rgba(255,255,255,.15);border-radius:18px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
+.wizard::-webkit-scrollbar{width:4px}.wizard::-webkit-scrollbar-thumb{background:#1e222b;border-radius:4px}
+.wiz-header{padding:28px 28px 0}
+.wiz-step-dots{display:flex;gap:6px;margin-bottom:20px}
+.wiz-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .2s}
+.wiz-dot.active{background:#7537d6;width:20px;border-radius:3px}
+.wiz-dot.done{background:rgba(117,55,214,.4)}
+.wiz-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;line-height:1.2}
+.wiz-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;line-height:1.6}
+.wiz-body{padding:0 28px;flex:1}
+.wiz-footer{padding:20px 28px 24px;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px}
+.wiz-skip{font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;text-decoration:underline;margin-left:auto}
+.wiz-skip:hover{color:rgba(255,255,255,.5)}
+.acct-setup-card{border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;background:#0e1016}
+.acct-setup-card:hover{border-color:rgba(117,55,214,.4);background:rgba(117,55,214,.05)}
+.acct-setup-card.selected{border-color:#7537d6;background:rgba(117,55,214,.1)}
+.acct-check{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.acct-check.checked{background:#7537d6;border-color:#7537d6}
+.acct-check.checked::after{content:"✓";font-size:10px;color:#fff}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.status-opt{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.status-opt:hover{border-color:rgba(117,55,214,.4)}
+.status-opt.sel{border-color:#7537d6;background:rgba(117,55,214,.1)}
+.status-opt .s-label{font-size:12px;font-weight:600;color:#e8eaf0}
+.status-opt .s-desc{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+.wiz-input{width:100%;padding:9px 12px;font-size:12px;background:#0e1016;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#e8eaf0;font-family:var(--f);transition:border-color .15s;margin-bottom:10px}
+.wiz-input:focus{outline:none;border-color:#7537d6}
+.wiz-input::placeholder{color:rgba(255,255,255,.2)}
+.wiz-textarea{resize:vertical;min-height:70px}
+.wiz-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:block}
+.added-acct{background:#0e1016;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.added-acct-name{font-size:12px;font-weight:600;color:#e8eaf0;flex:1}
+.added-acct-status{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.progress-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:6px;overflow:hidden}
+.progress-fill{height:100%;background:#7537d6;border-radius:2px;transition:width .3s}
+
+
+.quote-banner{background:linear-gradient(135deg,rgba(117,55,214,.15),rgba(117,55,214,.05));border:1px solid rgba(117,55,214,.25);border-radius:12px;padding:16px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.quote-banner::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(117,55,214,.08)}
+.quote-text{font-size:13px;font-weight:500;color:#e8eaf0;line-height:1.6;margin-bottom:6px;font-style:italic}
+.quote-author{font-size:11px;color:rgba(117,55,214,.8);font-weight:600}
+.quote-emoji{font-size:20px;margin-bottom:8px;display:block}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" style="width:36px;height:36px">
+        <path fill="#7537d6" d="M18.51,9.18v9.14h-9.22C4.14,18.33,0,14.2,0,9.18c0-2.51,1.02-4.81,2.69-6.46,1.67-1.72,3.99-2.72,6.61-2.72s4.86,1,6.53,2.72c1.67,1.65,2.69,3.94,2.69,6.46"/>
+        <path fill="#7537d6" d="M18.51,21.24v5.46c0,5.16-4.14,9.3-9.22,9.3-2.61,0-4.94-1.02-6.61-2.76-1.67-1.67-2.69-4-2.69-6.54v-10.19c2.11,2.91,5.52,4.73,9.29,4.73h9.22Z"/>
+        <path fill="#7537d6" d="M21.45,18.33h5.61c5.18,0,9.33-4.1,9.33-9.13,0-2.59-1.02-4.89-2.77-6.54C31.95,1.01,29.61,0,27.06,0h-10.35c2.92,2.08,4.74,5.46,4.74,9.2v9.13Z"/>
+      </svg>
+      <div>
+        <div style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1">Tempo</div>
+        <div style="font-size:11px;font-weight:500;color:#7537d6;letter-spacing:.1em;text-transform:uppercase;margin-top:2px">Rithum</div>
+      </div>
+    </div>
+    <div class="login-title" style="display:none">Team outreach platform</div>
+    <div class="login-sub">AI-powered prospecting — sign in to your account</div>
+    <div id="login-err" class="login-err">Invalid username or password</div>
+    <input class="inp" id="li-user" placeholder="Username" autocomplete="username"/>
+    <input class="inp" id="li-pass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <button class="lbtn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+
+<div id="onboard-wizard" class="wizard-bg" style="display:none">
+  <div class="wizard" id="wizard-box">
+    <div class="wiz-header">
+      <div class="wiz-step-dots" id="wiz-dots"></div>
+      <div class="wiz-title" id="wiz-title"></div>
+      <div class="wiz-sub" id="wiz-sub"></div>
+    </div>
+    <div class="wiz-body" id="wiz-body"></div>
+    <div class="wiz-footer">
+      <button class="btn btn-sm" id="wiz-back" onclick="wizBack()" style="display:none">← Back</button>
+      <button class="btn-p btn" id="wiz-next" onclick="wizNext()" style="padding:8px 20px;font-size:12px">Get started →</button>
+      <span class="wiz-skip" id="wiz-skip" onclick="closeWizard()">Skip setup</span>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" class="app" style="display:none">
+  <div class="sidebar">
+    <div class="sb-top">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" style="width:26px;height:26px;flex-shrink:0"><path fill="#7537d6" d="M18.51,9.18v9.14h-9.22C4.14,18.33,0,14.2,0,9.18c0-2.51,1.02-4.81,2.69-6.46,1.67-1.72,3.99-2.72,6.61-2.72s4.86,1,6.53,2.72c1.67,1.65,2.69,3.94,2.69,6.46"/><path fill="#7537d6" d="M18.51,21.24v5.46c0,5.16-4.14,9.3-9.22,9.3-2.61,0-4.94-1.02-6.61-2.76-1.67-1.67-2.69-4-2.69-6.54v-10.19c2.11,2.91,5.52,4.73,9.29,4.73h9.22Z"/><path fill="#7537d6" d="M21.45,18.33h5.61c5.18,0,9.33-4.1,9.33-9.13,0-2.59-1.02-4.89-2.77-6.54C31.95,1.01,29.61,0,27.06,0h-10.35c2.92,2.08,4.74,5.46,4.74,9.2v9.13Z"/></svg><div><div style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.1">Tempo</div><div style="font-size:9px;font-weight:600;color:#9b6be0;letter-spacing:.12em;text-transform:uppercase;margin-top:1px">Rithum</div></div></div>
+      <div class="sb-user">
+        <span id="sb-uname"></span>
+        <span class="sb-role" id="sb-role"></span>
+      </div>
+    </div>
+    <div class="sb-scroll" id="sidebar-scroll">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="sb-bottom">
+      <button class="btn btn-sm" style="flex:1" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="sdot" id="sdot" style="background:var(--accent)"></div>
+      <div class="topbar-name" id="tname">Loading...</div>
+      <div id="tpill"></div>
+      <button class="btn btn-sm" id="add-acct-btn" onclick="showAddModal()" style="display:none">+ Add account</button>
+      <button class="btn btn-sm" id="setup-btn" onclick="showWizard()" style="display:none" title="Account setup">⚙ Setup</button>
+    </div>
+    <div class="tabs" id="tabrow"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let TOKEN = '', USER = null, ACCOUNTS = [], ALL_ACCOUNTS = {}, TEAM_INFO = {};
+let curView = 'dashboard', curAcct = null, curTab = '';
+let openT = {}, genSeq = {}, pendingHook = '', replyType = 'positive';
+
+
+// ─── ONBOARDING WIZARD ────────────────────────────────────────────────────────
+const PRESET_ACCOUNTS = [
+  {name:'Argos',status:'open',persona:'Head of Ecommerce / Digital Director',context:'Sainsbury\'s Group. Omnichannel and fulfilment pressure. Online growth 8% YoY.',pain:'Slow product induction killing newness; assortment gaps; fulfilment model flexibility needed.'},
+  {name:'The Very Group',status:'nurture',persona:'New CTO + Head of Trading',context:'New CTO appointed. Online +12%. Need to engage tech and commercial separately.',pain:'New leadership reviewing vendors; platform flexibility; supplier onboarding speed.'},
+  {name:'Selfridges',status:'nurture',persona:'CDO / Head of Digital Experience',context:'New ownership (Central Group). Vendor review in progress.',pain:'Ownership transition; CX control for luxury; marketplace CX risk.'},
+  {name:'JD Sports',status:'eu',persona:'EU MD / Head of Ecommerce EU',context:'Existing US customer. EU revenue +18%. EU tech team Amsterdam.',pain:'Replicating US success in EU; separate EU tech stack; supplier onboarding.'},
+  {name:'Costco',status:'eu',persona:'Head of Ecommerce EU',context:'Existing US customer. EU online growing fast.',pain:'Scaling online in EU; stockless selling flexibility.'},
+  {name:'Signet',status:'eu',persona:'CTO EU / Head of Ecommerce Ernest Jones',context:'Existing US customer. EU brands: Ernest Jones, H.Samuel.',pain:'Platform consolidation; replicating US dropship/marketplace in EU.'},
+  {name:'Footasylum',status:'cold',persona:'Head of Ecommerce (ex-ASOS)',context:'JD Sports subsidiary. Replatforming to headless. New Head of Ecommerce from ASOS.',pain:'Replatforming = vendor selection window; extended assortment without stock risk.'},
+  {name:'AO',status:'cold',persona:'CTO / Head of Marketplace',context:'Online-only white goods. Re-entering Europe. £40m warehouse automation.',pain:'EU re-entry needs flexible fulfilment; extended assortment.'},
+  {name:'Wickes',status:'cold',persona:'Incoming VP Technology',context:'Post-demerger from Travis Perkins. Own tech budget. Hiring VP Technology.',pain:'Post-demerger tech build; assortment extension.'},
+  {name:'The Entertainer',status:'cold',persona:'Head of Ecommerce / CEO',context:'UK largest independent toy retailer. CEO committed to digital transformation.',pain:'Online assortment without stock risk; supplier onboarding speed.'},
+  {name:'Harrods',status:'cold',persona:'CDO Kate Sherwood',context:'Digital revenue +34%. New CDO Kate Sherwood appointed.',pain:'New CDO = 90-day vendor review; CX control critical for luxury.'},
+  {name:'Halfords',status:'cold',persona:'CTO / Head of Digital',context:'£50m tech investment. Digital-first strategy. 3 acquisitions.',pain:'Post-acquisition assortment integration; hybrid fulfilment.'},
+  {name:'Ocado',status:'cold',persona:'CPO / Head of Marketplace',context:'Online grocery + OSP platform. CFO leaving.',pain:'CFO transition = vendor review window; assortment extension.'},
+  {name:'Pets at Home',status:'won',persona:'New Head of Technology + Champion',context:'Closed won UK customer. Strong Q4. New Head of Tech joined.',pain:'Expand usage; protect relationship with new tech head.'},
+];
+
+const STATUS_LABELS_WIZ = {open:'Open opp',nurture:'Open — multithread',eu:'US customer → EU',cold:'Cold target',won:'Closed won'};
+const STATUS_COLORS_WIZ = {open:'rgba(117,55,214,.2);color:#b388f7',nurture:'rgba(224,95,208,.15);color:#e05fd0',eu:'rgba(245,166,35,.15);color:#f5a623',cold:'rgba(255,255,255,.07);color:rgba(255,255,255,.4)',won:'rgba(45,212,170,.12);color:#2dd4aa'};
+
+let wizStep = 0, wizSelectedPresets = new Set(), wizAddedAccounts = [],
+    wizCustomAcct = {name:'',status:'cold',persona:'',context:'',pain:''};
+
+const WIZ_STEPS = [
+  {
+    title: (name) => `Welcome to Tempo, ${name} 👋`,
+    sub: 'Your AI-powered prospecting agent. Let\'s get your book of business set up — it takes about 3 minutes.',
+    next: 'Let\'s go →',
+    back: false, skip: true,
+    render: () => `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px">
+        ${[['📡','Signal research','Monitors your accounts 24/7'],['✉️','RWOS outreach','Sequences that follow your methodology'],['🏴','Competitor intel','Tracks Mirakl, Tradebyte & more']].map(([i,t,d])=>`
+        <div style="background:#0e1016;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:22px;margin-bottom:8px">${i}</div>
+          <div style="font-size:12px;font-weight:600;color:#e8eaf0;margin-bottom:4px">${t}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);line-height:1.5">${d}</div>
+        </div>`).join('')}
+      </div>`
+  },
+  {
+    title: () => 'Add accounts from the EMEA list',
+    sub: 'These are the key UK retail accounts. Select all that are in your book of business — you can edit or add more after.',
+    next: 'Next →',
+    back: true, skip: true,
+    render: () => {
+      const groups = {
+        'Open opportunities': PRESET_ACCOUNTS.filter(a=>a.status==='open'||a.status==='nurture'),
+        'EU expansion': PRESET_ACCOUNTS.filter(a=>a.status==='eu'),
+        'Cold targets': PRESET_ACCOUNTS.filter(a=>a.status==='cold'),
+        'Customers': PRESET_ACCOUNTS.filter(a=>a.status==='won')
+      };
+      let h = '';
+      Object.entries(groups).forEach(([label,accts]) => {
+        h += `<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;margin-top:12px">${label}</div>`;
+        accts.forEach(a => {
+          const sel = wizSelectedPresets.has(a.name);
+          const sc = STATUS_COLORS_WIZ[a.status]||STATUS_COLORS_WIZ.cold;
+          h += `<div class="acct-setup-card${sel?' selected':''}" onclick="togglePreset('${a.name}')">
+            <div class="acct-check${sel?' checked':''}"></div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600;color:#e8eaf0">${a.name}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px">${a.persona}</div>
+            </div>
+            <span style="font-size:9px;padding:2px 8px;border-radius:10px;font-weight:500;background:${sc}">${STATUS_LABELS_WIZ[a.status]||'Target'}</span>
+          </div>`;
+        });
+      });
+      h += `<div style="font-size:11px;color:rgba(255,255,255,.3);padding:10px 0 4px">${wizSelectedPresets.size} account${wizSelectedPresets.size===1?'':'s'} selected</div>`;
+      return h;
+    }
+  },
+  {
+    title: () => 'Add your own accounts',
+    sub: 'Any accounts not on the list? Add them here. You can also do this later from the dashboard.',
+    next: 'Next →',
+    back: true, skip: true,
+    render: () => {
+      const statusOpts = [
+        {val:'open',label:'Open opp',desc:'Active opportunity in progress'},
+        {val:'nurture',label:'Open — multithread',desc:'Multiple stakeholders to engage'},
+        {val:'eu',label:'US → EU expansion',desc:'Existing US customer, expand EU'},
+        {val:'cold',label:'Cold target',desc:'Not yet approached'},
+        {val:'won',label:'Closed won',desc:'Existing customer — expand'},
+      ];
+      let h = '';
+      if (wizAddedAccounts.length > 0) {
+        h += `<div style="margin-bottom:12px">`;
+        wizAddedAccounts.forEach((a,i) => {
+          const sc = STATUS_COLORS_WIZ[a.status]||STATUS_COLORS_WIZ.cold;
+          h += `<div class="added-acct">
+            <div class="added-acct-name">${a.name}</div>
+            <span class="added-acct-status" style="background:${sc}">${STATUS_LABELS_WIZ[a.status]||'Target'}</span>
+            <button onclick="removeCustomAcct(${i})" style="background:none;border:none;color:rgba(255,255,255,.25);cursor:pointer;font-size:14px;padding:0 2px">×</button>
+          </div>`;
+        });
+        h += `</div>`;
+      }
+      h += `<div style="background:#0e1016;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px">
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:12px">Add an account</div>
+        <span class="wiz-label">Company name</span>
+        <input class="wiz-input" id="cust-name" placeholder="e.g. Next, Marks & Spencer..." value="${wizCustomAcct.name}" oninput="wizCustomAcct.name=this.value"/>
+        <span class="wiz-label">Status</span>
+        <div class="status-grid">
+          ${statusOpts.map(o=>`<div class="status-opt${wizCustomAcct.status===o.val?' sel':''}" onclick="setCustomStatus('${o.val}')">
+            <div class="s-label">${o.label}</div>
+            <div class="s-desc">${o.desc}</div>
+          </div>`).join('')}
+        </div>
+        <span class="wiz-label">Key persona / contact title</span>
+        <input class="wiz-input" id="cust-persona" placeholder="e.g. Head of Ecommerce, CDO..." value="${wizCustomAcct.persona}" oninput="wizCustomAcct.persona=this.value"/>
+        <span class="wiz-label">Context & background</span>
+        <textarea class="wiz-input wiz-textarea" id="cust-ctx" placeholder="What do you know? Current situation, why they matter..." oninput="wizCustomAcct.context=this.value">${wizCustomAcct.context}</textarea>
+        <span class="wiz-label">Key pain / hook</span>
+        <textarea class="wiz-input wiz-textarea" id="cust-pain" placeholder="What challenge does Rithum solve for them?" oninput="wizCustomAcct.pain=this.value">${wizCustomAcct.pain}</textarea>
+        <button class="btn-p btn" style="font-size:11px;padding:7px 16px;width:100%" onclick="addCustomAcct()">+ Add this account</button>
+      </div>`;
+      return h;
+    }
+  },
+  {
+    title: () => 'Review your book of business',
+    sub: 'Here\'s everything you\'re setting up. You can edit any account from the dashboard after setup.',
+    next: 'Set up my accounts →',
+    back: true, skip: false,
+    render: () => {
+      const all = [
+        ...PRESET_ACCOUNTS.filter(a => wizSelectedPresets.has(a.name)),
+        ...wizAddedAccounts
+      ];
+      if (all.length === 0) return `<div style="text-align:center;padding:20px;color:rgba(255,255,255,.35);font-size:12px">No accounts added yet. Go back to select or add some.</div>`;
+      const groups = {};
+      all.forEach(a => {
+        const g = STATUS_LABELS_WIZ[a.status]||'Target';
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(a);
+      });
+      let h = `<div style="background:#0e1016;border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:22px;font-weight:700;color:#7537d6;font-family:monospace">${all.length}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5)">accounts ready to set up</div>
+      </div>`;
+      Object.entries(groups).forEach(([label,accts]) => {
+        h += `<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;margin-top:10px">${label} (${accts.length})</div>`;
+        accts.forEach(a => {
+          const sc = STATUS_COLORS_WIZ[a.status]||STATUS_COLORS_WIZ.cold;
+          h += `<div class="added-acct">
+            <div class="added-acct-name">${a.name}</div>
+            <span class="added-acct-status" style="background:${sc}">${STATUS_LABELS_WIZ[a.status]||'Target'}</span>
+          </div>`;
+        });
+      });
+      return h;
+    }
+  },
+  {
+    title: () => 'All set — you\'re ready to go',
+    sub: 'Your accounts have been saved. Tempo will start monitoring them from today.',
+    next: 'Open Tempo →',
+    back: false, skip: false,
+    render: () => `
+      <div style="text-align:center;padding:10px 0 4px">
+        <div style="font-size:48px;margin-bottom:14px">🚀</div>
+        <div style="font-size:14px;font-weight:600;color:#e8eaf0;margin-bottom:8px">Accounts saved successfully</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:20px">Your daily signal scan runs every weekday at 7am.<br>Check the <strong style="color:#e8eaf0">Morning brief</strong> tab each day for the latest activity.<br>Add more accounts anytime from the dashboard.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          ${[['📡 Signals','Live now'],['✉️ Sequences','Ready to generate'],['🏴 Competitors','Being tracked']].map(([t,s])=>`
+          <div style="background:#0e1016;border:1px solid rgba(117,55,214,.2);border-radius:8px;padding:12px">
+            <div style="font-size:11px;font-weight:600;color:#e8eaf0;margin-bottom:3px">${t}</div>
+            <div style="font-size:10px;color:#7537d6">${s}</div>
+          </div>`).join('')}
+        </div>
+      </div>`
+  }
+];
+
+function showWizard() {
+  wizStep = 0; wizSelectedPresets = new Set(); wizAddedAccounts = [];
+  wizCustomAcct = {name:'',status:'cold',persona:'',context:'',pain:''};
+  document.getElementById('onboard-wizard').style.display = 'flex';
+  renderWizStep();
+}
+
+function closeWizard() {
+  document.getElementById('onboard-wizard').style.display = 'none';
+}
+
+function renderWizStep() {
+  const step = WIZ_STEPS[wizStep];
+  const total = WIZ_STEPS.length;
+  document.getElementById('wiz-title').textContent = typeof step.title === 'function' ? step.title(USER?.name||'there') : step.title;
+  document.getElementById('wiz-sub').textContent = typeof step.sub === 'function' ? step.sub() : step.sub;
+  document.getElementById('wiz-body').innerHTML = step.render();
+  document.getElementById('wiz-next').textContent = step.next;
+  document.getElementById('wiz-back').style.display = step.back ? 'block' : 'none';
+  document.getElementById('wiz-skip').style.display = step.skip ? 'block' : 'none';
+  // Dots
+  document.getElementById('wiz-dots').innerHTML = WIZ_STEPS.map((_,i) =>
+    `<div class="wiz-dot${i===wizStep?' active':i<wizStep?' done':''}"></div>`
+  ).join('');
+  // Progress
+  const pct = Math.round((wizStep / (total-1)) * 100);
+}
+
+function togglePreset(name) {
+  if (wizSelectedPresets.has(name)) wizSelectedPresets.delete(name);
+  else wizSelectedPresets.add(name);
+  renderWizStep();
+}
+
+function setCustomStatus(val) {
+  wizCustomAcct.status = val;
+  const inp = document.getElementById('cust-name');
+  if (inp) wizCustomAcct.name = inp.value;
+  const inp2 = document.getElementById('cust-persona');
+  if (inp2) wizCustomAcct.persona = inp2.value;
+  const inp3 = document.getElementById('cust-ctx');
+  if (inp3) wizCustomAcct.context = inp3.value;
+  const inp4 = document.getElementById('cust-pain');
+  if (inp4) wizCustomAcct.pain = inp4.value;
+  renderWizStep();
+}
+
+function addCustomAcct() {
+  const n = (document.getElementById('cust-name')||{}).value?.trim();
+  if (!n) { const el=document.getElementById('cust-name'); if(el){el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1500);} return; }
+  wizAddedAccounts.push({
+    name: n,
+    status: wizCustomAcct.status,
+    persona: (document.getElementById('cust-persona')||{}).value?.trim()||'',
+    context: (document.getElementById('cust-ctx')||{}).value?.trim()||'',
+    pain: (document.getElementById('cust-pain')||{}).value?.trim()||'',
+  });
+  wizCustomAcct = {name:'',status:'cold',persona:'',context:'',pain:''};
+  renderWizStep();
+}
+
+function removeCustomAcct(idx) {
+  wizAddedAccounts.splice(idx,1);
+  renderWizStep();
+}
+
+async function wizNext() {
+  // On final step — save and close
+  if (wizStep === WIZ_STEPS.length - 1) { closeWizard(); return; }
+  // On review step — save all accounts first
+  if (wizStep === WIZ_STEPS.length - 2) {
+    const btn = document.getElementById('wiz-next');
+    btn.textContent = 'Saving...'; btn.disabled = true;
+    const toSave = [
+      ...PRESET_ACCOUNTS.filter(a => wizSelectedPresets.has(a.name)),
+      ...wizAddedAccounts
+    ];
+    for (const acct of toSave) {
+      try { await addAccount(acct); } catch(e) { console.error('Failed to save', acct.name, e); }
+    }
+    btn.disabled = false;
+  }
+  wizStep++;
+  renderWizStep();
+  document.getElementById('wizard-box').scrollTop = 0;
+}
+
+function wizBack() {
+  if (wizStep > 0) { wizStep--; renderWizStep(); document.getElementById('wizard-box').scrollTop = 0; }
+}
+
+// ─── ACCOUNT SETUP SCREEN (accessible after onboarding from dashboard) ────────
+function showAccountSetup() {
+  wizStep = 1; // jump straight to account selection
+  wizSelectedPresets = new Set(ACCOUNTS.map(a=>a.name));
+  document.getElementById('onboard-wizard').style.display = 'flex';
+  renderWizStep();
+}
+
+
+const DAILY_QUOTES = [
+  {text:"The best time to plant a tree was 20 years ago. The second best time is to send that follow-up email right now.", author:"Ancient proverb (adapted for sales)", emoji:"🌳"},
+  {text:"Every no gets you closer to a yes. Unless you're not sending enough emails — then every no just gets you closer to unemployment.", author:"Anonymous SDR, probably", emoji:"📧"},
+  {text:"Your pipeline is a garden. Water it daily with personalised outreach, or watch your quota die a slow, embarrassing death.", author:"Unknown sales philosopher", emoji:"🌱"},
+  {text:"The secret of getting ahead is getting started. The secret of getting started is closing LinkedIn and opening your CRM.", author:"Mark Twain (he definitely said this)", emoji:"🚀"},
+  {text:"Success is not final, failure is not fatal — but a 47% email open rate is genuinely something to be proud of.", author:"Winston Churchill (paraphrased)", emoji:"💪"},
+  {text:"It always seems impossible until it's done. Like multithreading Selfridges. That seemed impossible. You can do it.", author:"Nelson Mandela (sort of)", emoji:"🏆"},
+  {text:"If opportunity doesn't knock, build a door. If that doesn't work, try a personalised LinkedIn message with a compelling hook.", author:"Milton Berle (modified)", emoji:"🚪"},
+  {text:"The harder I work, the luckier I get. Although 'luck' is really just sending six well-timed touches over 28 days.", author:"Samuel Goldwyn, sales edition", emoji:"🍀"},
+  {text:"Don't watch the clock; do what it does — keep going. Also check the clock because your follow-up with Harrods is overdue.", author:"Sam Levenson", emoji:"⏰"},
+  {text:"You miss 100% of the shots you don't take. You also miss 100% of the deals where you forgot to do the bump email.", author:"Wayne Gretzky via Michael Scott", emoji:"🏒"},
+  {text:"Act as if what you do makes a difference. It does. Especially that break-up email — 89% reply rate lift is not a joke.", author:"William James", emoji:"⚡"},
+  {text:"Believe you can and you're halfway there. The other half is making sure your subject line is under four words and lower case.", author:"Theodore Roosevelt, RWOS edition", emoji:"✉️"},
+  {text:"The only way to do great work is to love what you do. And to have a really solid discovery process.", author:"Steve Jobs (abridged)", emoji:"❤️"},
+  {text:"In the middle of every difficulty lies opportunity. In the middle of every call reluctance lies your next closed won deal.", author:"Albert Einstein, probably", emoji:"💡"},
+  {text:"It does not matter how slowly you go as long as you do not stop. Unless your Harrods opportunity is getting cold — then please hurry up.", author:"Confucius", emoji:"🐢"},
+  {text:"Quality is not an act, it is a habit. Specifically the habit of personalising every single email before you send it.", author:"Aristotle", emoji:"📝"},
+  {text:"The future depends on what you do today. Today's task: open Tempo, check your signals, send that LinkedIn message to Kate Sherwood.", author:"Mahatma Gandhi", emoji:"🌅"},
+  {text:"A smooth sea never made a skilled sailor. Neither did endless admin and a pipeline full of maybes. Get after it.", author:"Franklin D. Roosevelt", emoji:"⛵"},
+  {text:"Challenges are what make life interesting. Overcoming them is what makes life meaningful. Also what makes commission cheques larger.", author:"Joshua J. Marine", emoji:"🎯"},
+  {text:"Your attitude, not your aptitude, will determine your altitude. That said, a well-crafted break-up email helps enormously.", author:"Zig Ziglar", emoji:"📈"},
+  {text:"Success usually comes to those who are too busy to be looking for it. Stop scrolling LinkedIn. Start sending on LinkedIn.", author:"Henry David Thoreau", emoji:"🏃"},
+  {text:"I find that the harder I work, the more signals magically appear in my accounts. Funny how that works.", author:"Thomas Jefferson (sales version)", emoji:"🔭"},
+  {text:"Don't be afraid to give up the good to go for the great. Specifically, give up the generic email for the personalised one.", author:"John D. Rockefeller", emoji:"🌟"},
+  {text:"The people who are crazy enough to think they can change the world are the ones who do. You're trying to change how Halfords sells online. Same energy.", author:"Steve Jobs", emoji:"🌍"},
+  {text:"Two things are infinite: the universe and human procrastination. Make today the exception. Open Argos. Write the sequence.", author:"Einstein (embellished)", emoji:"♾️"},
+];
+
+function getDailyQuote() {
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+}
+
+function renderQuoteBanner() {
+  const q = getDailyQuote();
+  return `<div class="quote-banner">
+    <span class="quote-emoji">${q.emoji}</span>
+    <div class="quote-text">"${q.text}"</div>
+    <div class="quote-author">— ${q.author}</div>
+  </div>`;
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('li-user').value.trim();
+  const p = document.getElementById('li-pass').value.trim();
+  if (!u || !p) return;
+  try {
+    const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+    if (!r.ok) { document.getElementById('login-err').style.display='block'; return; }
+    const d = await r.json();
+    // Normalise role to lowercase 'manager' or 'rep' regardless of how it is
+    // stored in team.config.js (e.g. 'Manager', 'Strategic Account Director').
+    d.role = d.role && d.role.toLowerCase() === 'manager' ? 'manager' : 'rep';
+    TOKEN = d.token; USER = d;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
+    document.getElementById('sb-uname').textContent = d.name;
+    document.getElementById('sb-role').textContent = d.role === 'manager' ? 'Manager' : 'Rep';
+    document.getElementById('sb-role').className = 'sb-role ' + (d.role === 'manager' ? 'role-mgr' : 'role-rep');
+    await loadAccounts();
+    initView();
+    if (USER.role !== 'manager' && ACCOUNTS.length === 0) {
+      setTimeout(() => showWizard(), 400);
+    }
+  } catch(e) { document.getElementById('login-err').style.display='block'; }
+}
+
+function doLogout() {
+  TOKEN=''; USER=null; ACCOUNTS=[]; curView='dashboard'; curAcct=null;
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('li-pass').value='';
+  document.getElementById('login-err').style.display='none';
+}
+
+document.getElementById('li-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('li-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pass').focus(); });
+
+// ─── ACCOUNTS ─────────────────────────────────────────────────────────────────
+async function loadAccounts() {
+  const r = await fetch('/api/accounts', { headers:{'x-token':TOKEN} });
+  const d = await r.json();
+  if (USER.role === 'manager') {
+    ALL_ACCOUNTS = d.all;
+    // Normalise each team member's role to lowercase 'manager' or 'rep' so
+    // that the manager-dashboard filter (info.role === 'manager') works
+    // regardless of how roles are capitalised in team.config.js.
+    TEAM_INFO = d.teamInfo;
+    Object.values(TEAM_INFO).forEach(m => {
+      m.role = m.role && m.role.toLowerCase() === 'manager' ? 'manager' : 'rep';
+    });
+  } else { ACCOUNTS = d.accounts || []; }
+  renderSidebar();
+}
+
+async function addAccount(data) {
+  const r = await fetch('/api/accounts', { method:'POST', headers:{'Content-Type':'application/json','x-token':TOKEN}, body:JSON.stringify(data) });
+  const acct = await r.json();
+  ACCOUNTS.push(acct);
+  renderSidebar();
+  return acct;
+}
+
+async function deleteAccount(id) {
+  await fetch('/api/accounts/'+id, { method:'DELETE', headers:{'x-token':TOKEN} });
+  ACCOUNTS = ACCOUNTS.filter(a => a.id !== id);
+  if (curAcct && curAcct.id === id) { curAcct = null; curView = 'dashboard'; }
+  renderSidebar();
+  initView();
+}
+
+async function updateAccount(id, data) {
+  const r = await fetch('/api/accounts/'+id, { method:'PUT', headers:{'Content-Type':'application/json','x-token':TOKEN}, body:JSON.stringify(data) });
+  const updated = await r.json();
+  const idx = ACCOUNTS.findIndex(a => a.id === id);
+  if (idx !== -1) ACCOUNTS[idx] = updated;
+  return updated;
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+const STATUS_COLORS = { open:'t-open', eu:'t-eu', cold:'t-cold', won:'t-won', nurture:'t-nurture' };
+const STATUS_LABELS = { open:'Open opp', eu:'US → EU expansion', cold:'Cold target', won:'Closed won', nurture:'Open · Multithread' };
+const STATUS_PILLS = { open:'p-blue', eu:'p-amber', cold:'p-gray', won:'p-teal', nurture:'p-pink' };
+const STATUS_DOTS = { open:'var(--accent)', eu:'var(--amber)', cold:'var(--text3)', won:'var(--teal)', nurture:'var(--pink)' };
+
+function renderSidebar() {
+  const el = document.getElementById('sidebar-scroll');
+  let h = '';
+  if (USER.role === 'manager') {
+    h += `<div class="sb-nav${curView==='dashboard'?' active':''}" onclick="goView('dashboard')"><span class="sb-nav-icon">⬡</span> Dashboard</div>`;
+    h += `<div class="sb-nav${curView==='mgr-accounts'?' active':''}" onclick="goView('mgr-accounts')"><span class="sb-nav-icon">🏢</span> All accounts</div>`;
+    h += `<div class="sb-nav${curView==='mgr-pipeline'?' active':''}" onclick="goView('mgr-pipeline')"><span class="sb-nav-icon">📊</span> Pipeline view</div>`;
+    h += `<div class="sb-nav${curView==='mgr-signals'?' active':''}" onclick="goView('mgr-signals')"><span class="sb-nav-icon">📡</span> Team signals</div>`;
+  } else {
+    h += `<div class="sb-nav${curView==='dashboard'?' active':''}" onclick="goView('dashboard')"><span class="sb-nav-icon">⬡</span> My dashboard</div>`;
+    const groups = { open:[], nurture:[], eu:[], cold:[], won:[] };
+    ACCOUNTS.forEach(a => { const g = a.status || 'cold'; if(groups[g]) groups[g].push(a); else groups.cold.push(a); });
+    const groupLabels = { open:'Open opps', nurture:'Multithread', eu:'EU expansion', cold:'Cold targets', won:'Customers' };
+    Object.entries(groupLabels).forEach(([g, label]) => {
+      if (groups[g] && groups[g].length > 0) {
+        h += `<div class="sb-sect">${label}</div>`;
+        groups[g].forEach(a => {
+          h += `<div class="sb-acct${curAcct&&curAcct.id===a.id?' active':''}" onclick="goAcct('${a.id}')">
+            <span class="an">${a.name}</span>
+            <span class="at ${STATUS_COLORS[a.status]||'t-cold'}">${STATUS_LABELS[a.status]||'Target'}</span>
+          </div>`;
+        });
+      }
+    });
+    document.getElementById('add-acct-btn').style.display = curView==='acct'||curView==='dashboard' ? 'block' : 'none';
+  }
+  el.innerHTML = h;
+}
+
+function goView(v) {
+  curView = v; curAcct = null; openT={}; genSeq={};
+  document.getElementById('tpill').innerHTML='';
+  document.getElementById('sdot').style.background='var(--accent)';
+  document.getElementById('add-acct-btn').style.display = USER.role==='rep'?'block':'none';
+  document.getElementById('setup-btn').style.display = USER.role==='rep'?'block':'none';
+  renderSidebar();
+  initView();
+}
+
+function goAcct(id) {
+  const a = ACCOUNTS.find(a => a.id === id);
+  if (!a) return;
+  curAcct = a; curView = 'acct'; openT={}; genSeq={};
+  document.getElementById('tpill').innerHTML = `<span class="pill ${STATUS_PILLS[a.status]||'p-gray'}">${STATUS_LABELS[a.status]||'Target'}</span>`;
+  document.getElementById('sdot').style.background = STATUS_DOTS[a.status]||'var(--text3)';
+  document.getElementById('add-acct-btn').style.display = 'none';
+  renderSidebar();
+  initView();
+}
+
+// ─── VIEW ROUTING ─────────────────────────────────────────────────────────────
+const ACCT_TABS = ['sequence','signals','contacts','single','ideas','checker','reply','subjects','notes','rules'];
+const ORCH_TABS = ['overview','digest','signals','competitors','outreach'];
+const MGR_ACCT_TABS = ['accounts','pipeline'];
+const TAB_LABELS = {sequence:'Sequence',signals:'Signals',contacts:'Contacts',single:'Single message',ideas:'Ideas',checker:'RWOS check',reply:'Reply handler',subjects:'Subject A/B',notes:'Notes',rules:'Rules',overview:'Overview',outreach:'Outreach',competitors:'Competitors',digest:'Morning brief',accounts:'All accounts',pipeline:'Pipeline'};
+const NEW_TABS = ['contacts','checker','reply','subjects'];
+
+function initView() {
+  let tabs = [], defaultTab = '', title = '';
+  if (curView === 'acct' && curAcct) {
+    tabs = ACCT_TABS; defaultTab = 'sequence'; title = curAcct.name;
+  } else if (curView === 'dashboard') {
+    tabs = ORCH_TABS; defaultTab = 'overview'; title = USER.role==='manager' ? 'Manager dashboard' : 'My dashboard';
+  } else if (curView === 'mgr-accounts') {
+    tabs = []; defaultTab = ''; title = 'All accounts';
+    document.getElementById('tname').textContent = title;
+    document.getElementById('tabrow').innerHTML = '';
+    document.getElementById('content').innerHTML = renderMgrAccounts();
+    return;
+  } else if (curView === 'mgr-pipeline') {
+    tabs = []; defaultTab = ''; title = 'Pipeline view';
+    document.getElementById('tname').textContent = title;
+    document.getElementById('tabrow').innerHTML = '';
+    document.getElementById('content').innerHTML = renderMgrPipeline();
+    return;
+  } else if (curView === 'mgr-signals') {
+    tabs = []; defaultTab = ''; title = 'Team signals';
+    document.getElementById('tname').textContent = title;
+    document.getElementById('tabrow').innerHTML = '';
+    document.getElementById('content').innerHTML = renderMgrSignals();
+    return;
+  }
+  document.getElementById('tname').textContent = title;
+  buildTabs(tabs, defaultTab);
+}
+
+function buildTabs(tabs, active) {
+  document.getElementById('tabrow').innerHTML = tabs.map(t =>
+    `<div class="tab${t===active?' active':''}" onclick="setTab('${t}')" id="t-${t}">${TAB_LABELS[t]||t}${NEW_TABS.includes(t)?'<span class="nd"></span>':''}</div>`
+  ).join('');
+  curTab = active;
+  renderPane();
+}
+
+function setTab(t) {
+  curTab = t;
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  const el = document.getElementById('t-'+t); if(el) el.classList.add('active');
+  renderPane();
+}
+
+// ─── SEQUENCES ────────────────────────────────────────────────────────────────
+const SQ = {
+  cold:[{day:'Day 1',name:'Personalised email',ch:'Email',cls:'ce',g:'Subject 1-4 words, lower case. Hook on their specific signal. Social proof from a peer UK retailer. 100 words max. Interest CTA only.'},
+    {day:'Day 1',name:'LinkedIn connection',ch:'LinkedIn',cls:'cl',g:'300 chars max. Same hook as email. Human, not salesy. No pitch.'},
+    {day:'Day 3',name:'Bump email',ch:'Email',cls:'ce',g:'1-2 sentences only. Light nudge. No new pitch.'},
+    {day:'Day 7',name:'Call + VM + follow-up email',ch:'Multi-touch',cls:'cm',g:'Call first. 20-sec VM. Follow-up email same day. This 3x response rates.'},
+    {day:'Day 10',name:'LinkedIn insight message',ch:'LinkedIn',cls:'cl',g:'500 chars. Relevant insight. No ask yet.'},
+    {day:'Day 16',name:'Is there someone else?',ch:'Email',cls:'ce',g:'Ask if this topic sits with someone else. Keeps you in play.'},
+    {day:'Day 24',name:'Break-up email',ch:'Email',cls:'ce',g:'Close the loop. Leave the door open. 89% reply rate lift.'}],
+  warm:[{day:'Day 1',name:'Personalised warm email',ch:'Email',cls:'ce',g:'Reference the open conversation. Social proof. 100 words. Move to next step.'},
+    {day:'Day 1',name:'LinkedIn same-day touch',ch:'LinkedIn',cls:'cl',g:'Short personal note. Multi-touch same day.'},
+    {day:'Day 4',name:'Value-add bump',ch:'Email',cls:'ce',g:'Insight, stat, peer example. 2-3 sentences. Value before ask.'},
+    {day:'Day 8',name:'Call + VM + email',ch:'Multi-touch',cls:'cm',g:'Call. VM. Follow-up same day.'},
+    {day:'Day 14',name:'Is there someone else?',ch:'Email',cls:'ce',g:'Ask if topic sits elsewhere.'},
+    {day:'Day 21',name:'Break-up email',ch:'Email',cls:'ce',g:'Close the loop. 89% lift.'}],
+  eu:[{day:'Day 1',name:'Warm email — reference US relationship',ch:'Email',cls:'ce',g:'Lead with existing US relationship. Short, warm, EU-specific. CTA: apply US success to EU.'},
+    {day:'Day 1',name:'LinkedIn — EU contact',ch:'LinkedIn',cls:'cl',g:'Connect with EU DM. Reference US relationship. 300 chars.'},
+    {day:'Day 4',name:'EU insight bump',ch:'Email',cls:'ce',g:'EU-specific insight. 2-3 sentences.'},
+    {day:'Day 8',name:'Call + VM + email',ch:'Multi-touch',cls:'cm',g:'Call EU contact. VM + email same day. Offer US counterpart warm intro.'},
+    {day:'Day 14',name:'Break-up / escalation',ch:'Email',cls:'ce',g:'Close the loop or offer US counterpart intro.'}],
+  nurture:[{day:'Day 1',name:'Stakeholder 1 email',ch:'Email',cls:'ce',g:'First thread. Tailored to this stakeholder. 100 words. Interest CTA.'},
+    {day:'Day 2',name:'Stakeholder 2 — separate email',ch:'Email',cls:'ce',g:'Different person, different angle. Keep threads independent.'},
+    {day:'Day 2',name:'LinkedIn — connect both',ch:'LinkedIn',cls:'cl',g:'Connect with both same day. Different note for each.'},
+    {day:'Day 5',name:'Bump — both threads',ch:'Email',cls:'ce',g:'1-2 sentence bump on each thread separately.'},
+    {day:'Day 10',name:'Call + VM + email — priority stakeholder',ch:'Multi-touch',cls:'cm',g:'Focus on whichever engaged more.'},
+    {day:'Day 16',name:'Someone else? — both threads',ch:'Email',cls:'ce',g:'Surface a third stakeholder.'},
+    {day:'Day 22',name:'Break-up email',ch:'Email',cls:'ce',g:'Most engaged thread. Close the loop.'}],
+  won:[{day:'Day 1',name:'Champion — celebrate + ask',ch:'Email',cls:'ce',g:'Reference the win. Introduce expansion ask lightly. Warm, not commercial.'},
+    {day:'Day 2',name:'New stakeholder — intro email',ch:'Email',cls:'ce',g:'Warm intro to new contact. Reference partnership.'},
+    {day:'Day 2',name:'LinkedIn — new stakeholder',ch:'LinkedIn',cls:'cl',g:'Connect with new contact. Short personal note.'},
+    {day:'Day 6',name:'Value-add insight',ch:'Email',cls:'ce',g:'Case study, Unified Catalog stat, next capability.'},
+    {day:'Day 12',name:'Call + email — new stakeholder',ch:'Multi-touch',cls:'cm',g:'Call. VM + email same day.'}]
+};
+
+function seqType(status) { return {open:'warm',nurture:'nurture',eu:'eu',cold:'cold',won:'won'}[status]||'cold'; }
+
+const SYS = `You are an expert outreach copywriter for Rithum, a retail commerce operations platform. ALWAYS follow RWOS rules:
+EMAIL: Subject 1-4 words lower case. First 5-6 words hook on THEIR world not Rithum. Personalised. Social proof 1-2 sentences peer UK retailer (Pets at Home is a Rithum customer). 100 words max hard limit. CTA = interest not time ("Open to learning more?" never "Can we book 30 mins?"). Never start with I.
+LINKEDIN: Connection 300 chars max no pitch. Follow-up 500 chars max insight first.
+VOICEMAIL: 20 seconds max, reference email, one ask.
+RITHUM: Single platform dropship + marketplace + wholesale any hybrid. Pain 1: marketplace = lost CX control, complaints land with retailer. Pain 2: supplier onboarding weeks/months, Unified Catalog brings it to days.
+TONE: Direct. Specific. Their world first. Peer proof. Interest CTA always.`;
+
+// ─── PANE RENDERERS ───────────────────────────────────────────────────────────
+function renderPane() {
+  const el = document.getElementById('content');
+  const r = {
+    overview: rDashboard, signals: curView==='acct'?rAcctSigs:rOrchSigs,
+    digest: rDigest,
+    competitors: rCompetitors,
+    outreach: rOrchOutreach, sequence: rSeq, contacts: rContacts,
+    single: rSingle, ideas: rIdeas, checker: rChecker,
+    reply: rReply, subjects: rSubjects, notes: rNotes, rules: rRules
+  };
+  if (r[curTab]) el.innerHTML = r[curTab]();
+  else el.innerHTML = '';
+}
+
+// DASHBOARD
+function rDashboard() {
+  if (USER.role === 'manager') return rMgrDashboard();
+  const total = ACCOUNTS.length;
+  const open = ACCOUNTS.filter(a=>a.status==='open'||a.status==='nurture').length;
+  const hot = ACCOUNTS.filter(a=>a.signals&&a.signals.length>0).length;
+  const won = ACCOUNTS.filter(a=>a.status==='won').length;
+  let h = renderQuoteBanner() + `<div class="sg">
+    <div class="sc"><div class="sl">My accounts</div><div class="sv">${total}</div></div>
+    <div class="sc"><div class="sl">Open opps</div><div class="sv" style="color:var(--accent)">${open}</div></div>
+    <div class="sc"><div class="sl">With signals</div><div class="sv" style="color:var(--amber)">${hot}</div></div>
+    <div class="sc"><div class="sl">Customers</div><div class="sv" style="color:var(--teal)">${won}</div></div>
+  </div>`;
+  if (total === 0) {
+    h += `<div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:32px;margin-bottom:12px">🏢</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px">Add your accounts</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Start by adding your book of business. Each account gets its own research, signals and outreach sequences.</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-p" onclick="showWizard()">Account setup wizard ↗</button>
+        <button class="btn" onclick="showAddModal()">+ Add manually</button>
+      </div>
+    </div>`;
+  } else {
+    h += `<div class="card"><div class="card-h">Your accounts</div>`;
+    ACCOUNTS.forEach(a => {
+      const initials = a.name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const colors = ['#7537d6','#2dd4aa','#f5a623','#e05fd0','#4caf82'];
+      const col = colors[a.name.charCodeAt(0)%colors.length];
+      h += `<div class="ac-card">
+        <div class="ac-avatar" style="background:${col}20;color:${col}">${initials}</div>
+        <div class="ac-info">
+          <div class="ac-name">${a.name}</div>
+          <div class="ac-meta">${STATUS_LABELS[a.status]||'Target'}${a.persona?' · '+a.persona:''}</div>
+          ${a.context?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${a.context.substring(0,100)}${a.context.length>100?'...':''}</div>`:''}
+          <div class="ac-actions">
+            <button class="btn btn-sm btn-p" onclick="goAcct('${a.id}')">Open →</button>
+            <button class="btn btn-sm btn-danger" onclick="if(confirm('Delete ${a.name}?'))deleteAccount('${a.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    h += `</div><div class="brow"><button class="btn btn-p" onclick="showAddModal()">+ Add account</button></div>`;
+  }
+  h += `<div id="dash-out"></div>`;
+  return h;
+}
+
+// MANAGER DASHBOARD
+function rMgrDashboard() {
+  const allAccts = Object.values(ALL_ACCOUNTS).flat();
+  const total = allAccts.length;
+  const open = allAccts.filter(a=>a.status==='open'||a.status==='nurture').length;
+  const cold = allAccts.filter(a=>a.status==='cold').length;
+  const won = allAccts.filter(a=>a.status==='won').length;
+  let h = renderQuoteBanner() + `<div class="sg">
+    <div class="sc"><div class="sl">Team accounts</div><div class="sv">${total}</div></div>
+    <div class="sc"><div class="sl">Open opps</div><div class="sv" style="color:var(--accent)">${open}</div></div>
+    <div class="sc"><div class="sl">Cold targets</div><div class="sv" style="color:var(--text2)">${cold}</div></div>
+    <div class="sc"><div class="sl">Customers</div><div class="sv" style="color:var(--teal)">${won}</div></div>
+  </div>
+  <div class="card"><div class="card-h">Team overview</div>`;
+  Object.keys(ALL_ACCOUNTS).forEach(u => {
+    const info = TEAM_INFO[u] || {};
+    if (!info.name) return;
+    const accts = ALL_ACCOUNTS[u] || [];
+    const open = accts.filter(a=>a.status==='open'||a.status==='nurture').length;
+    h += `<div class="pr">
+      <div class="pr-acct">${info.name}</div>
+      <div class="pr-sig">
+        <span class="pill p-gray">${accts.length} accounts</span>
+        ${open>0?`<span class="pill p-blue">${open} open opps</span>`:''}
+      </div>
+      <button class="btn btn-sm" onclick="expandRep('${u}')">View →</button>
+    </div>`;
+  });
+  h += `</div>`;
+  h += `<div class="brow"><button class="btn btn-p" onclick="rO('Analyse my team\'s account portfolio and give me a prioritised action plan for this week across the team')">Team briefing ↗</button></div>`;
+  h += `<div id="dash-out"></div>`;
+  return h;
+}
+
+async function expandRep(username) {
+  // Navigate to all accounts filtered by rep
+  goView('mgr-accounts');
+}
+
+// MANAGER - ALL ACCOUNTS
+function renderMgrAccounts() {
+  let h = '';
+  Object.keys(ALL_ACCOUNTS).forEach(u => {
+    const info = TEAM_INFO[u] || {};
+    if (!info.name || info.role === 'manager') return;
+    const accts = ALL_ACCOUNTS[u] || [];
+    h += `<div class="rep-section">
+      <div class="rep-header" onclick="toggleRep('rep-${u}')">
+        <div class="rep-header-name">${info.name}</div>
+        <span class="pill p-gray">${accts.length} accounts</span>
+      </div>
+      <div class="rep-body" id="rep-${u}">`;
+    if (accts.length === 0) {
+      h += `<div style="padding:14px 16px;font-size:12px;color:var(--text3)">No accounts added yet</div>`;
+    } else {
+      accts.forEach(a => {
+        h += `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600">${a.name}</div>
+            <div style="font-size:11px;color:var(--text2)">${STATUS_LABELS[a.status]||'Target'}${a.persona?' · '+a.persona:''}</div>
+          </div>
+          <span class="pill ${STATUS_PILLS[a.status]||'p-gray'}">${STATUS_LABELS[a.status]||'Target'}</span>
+        </div>`;
+      });
+    }
+    h += `</div></div>`;
+  });
+  if (!h) h = `<div class="card"><div style="padding:20px;text-align:center;color:var(--text3)">No team accounts added yet</div></div>`;
+  return h;
+}
+
+function toggleRep(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('closed');
+}
+
+// MANAGER - PIPELINE
+function renderMgrPipeline() {
+  const allAccts = Object.entries(ALL_ACCOUNTS).flatMap(([u,accts])=>accts.map(a=>({...a,repUsername:u,repName:(TEAM_INFO[u]||{}).name||u})));
+  const groups = { open:[], nurture:[], eu:[], cold:[], won:[] };
+  allAccts.forEach(a => { const g = a.status||'cold'; if(groups[g]) groups[g].push(a); else groups.cold.push(a); });
+  const labels = { open:'Open opps', nurture:'Multithread', eu:'EU Expansion', cold:'Cold targets', won:'Customers' };
+  const pillMap = { open:'p-blue', nurture:'p-pink', eu:'p-amber', cold:'p-gray', won:'p-teal' };
+  let h = '';
+  Object.entries(labels).forEach(([g,label]) => {
+    h += `<div class="card"><div class="card-h">${label} <span style="font-weight:400;color:var(--text3)">(${groups[g].length})</span></div>`;
+    if (groups[g].length === 0) { h += `<div style="font-size:12px;color:var(--text3);padding:4px 0">None</div>`; }
+    groups[g].forEach(a => {
+      h += `<div class="pr"><div class="pr-acct">${a.name}</div><div class="pr-sig"><span class="pill p-gray" style="font-size:10px">${a.repName}</span></div></div>`;
+    });
+    h += `</div>`;
+  });
+  return h;
+}
+
+// MANAGER - SIGNALS
+function renderMgrSignals() {
+  return `<div class="hint">Run a signal scan across any account or the full team portfolio.</div>
+  <div class="field"><label>Account or topic to scan</label>
+    <div style="display:flex;gap:8px"><input id="mgr-sig-in" placeholder="e.g. Harrods, UK retail leadership changes, Q4 results..." style="flex:1;padding:8px 12px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--f)"/>
+    <button class="btn btn-p" onclick="runMgrSignal()">Scan ↗</button></div>
+  </div>
+  <div id="mgr-sig-out"></div>`;
+}
+
+async function runMgrSignal() {
+  const q = document.getElementById('mgr-sig-in').value.trim();
+  const el = document.getElementById('mgr-sig-out');
+  el.innerHTML = '<div class="out"><span class="loading">Scanning</span></div>';
+  const result = await ai(`Find the latest B2B sales signals relevant to: ${q||'UK retail'}. Focus on leadership changes, funding, hiring, financial results, tech investments. Rate each High/Medium/Low and suggest the outreach angle.`, SYS, true);
+  el.innerHTML = `<div class="card"><div class="oh"><span class="ol">Signals</span><button class="cpbtn" onclick="cp('mgr-sig-t')">copy</button></div><div class="out" id="mgr-sig-t">${result}</div></div>`;
+}
+
+// ORCHESTRATOR SIGNALS
+function rOrchSigs() {
+  return `<div class="hint">Run a live signal scan across your accounts or any topic.</div>
+  <div class="field"><label>Account or topic</label>
+    <div style="display:flex;gap:8px">
+      <input id="osi" placeholder="e.g. my open opps, UK retail news, leadership changes..." style="flex:1;padding:8px 12px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--f)"/>
+      <button class="btn btn-p" onclick="runOrchSig()">Scan ↗</button>
+    </div>
+  </div>
+  <div id="osi-out"></div>`;
+}
+
+async function runOrchSig() {
+  const q = document.getElementById('osi').value.trim();
+  const acctNames = ACCOUNTS.map(a=>a.name).join(', ') || 'my accounts';
+  const el = document.getElementById('osi-out');
+  el.innerHTML = '<div class="out"><span class="loading">Scanning</span></div>';
+  const result = await ai(`Find the latest B2B sales signals for: ${q||acctNames}. Focus on leadership changes, funding, hiring, financial results, tech investments, LinkedIn posts. Rate each High/Medium/Low and suggest the outreach angle.`, SYS, true);
+  el.innerHTML = `<div class="card"><div class="oh"><span class="ol">Signals found</span><button class="cpbtn" onclick="cp('osi-t')">copy</button></div><div class="out" id="osi-t">${result}</div></div>`;
+}
+
+// ORCHESTRATOR OUTREACH
+function rOrchOutreach() {
+  const acctNames = ACCOUNTS.map(a=>`${a.name} (${a.status||'cold'})`).join(', ') || 'my accounts';
+  return `<div class="hint">Generate a prioritised outreach plan across all your accounts.</div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="rO('Create a prioritised outreach plan for this week for these accounts: ${acctNames}. For each: angle, right person, channel, 2-sentence opener. RWOS rules.')">This week\'s plan ↗</button>
+    <button class="btn" onclick="rO('Which of these accounts are most likely in an active buying cycle right now and why? Accounts: ${acctNames}')">Who to prioritise ↗</button>
+  </div>
+  <div id="oo-out"></div>`;
+}
+
+async function rO(prompt) {
+  let el = document.getElementById('dash-out') || document.getElementById('oo-out');
+  if (!el) return;
+  el.innerHTML = '<div class="out" style="margin-top:14px"><span class="loading">Running</span></div>';
+  const result = await ai(prompt, SYS, true);
+  el.innerHTML = `<div style="margin-top:14px"><div class="oh"><span class="ol">Output</span><button class="cpbtn" onclick="cp('rO-t')">copy</button></div><div class="out" id="rO-t">${result}</div></div>`;
+}
+
+// ACCOUNT SIGNALS
+function rAcctSigs() {
+  const a = curAcct;
+  return `<div class="card"><div class="card-h">Saved signals</div>
+    ${(a.signals||[]).length === 0 ? '<div style="font-size:12px;color:var(--text3)">No signals saved yet — search below</div>' :
+      (a.signals||[]).map(s=>`<div class="sr"><div class="sd" style="background:var(--accent)"></div><div class="st">${s}</div></div>`).join('')}
+  </div>
+  <div class="field"><label>Search for live signals</label>
+    <div style="display:flex;gap:8px"><input id="sx" placeholder="e.g. news, LinkedIn posts, hiring..." style="flex:1;padding:8px 12px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--f)"/>
+    <button class="btn btn-p" onclick="srchSig()">Find ↗</button></div>
+  </div>
+  <div id="sx-r"></div>`;
+}
+
+async function srchSig() {
+  const q = document.getElementById('sx').value.trim();
+  const el = document.getElementById('sx-r');
+  el.innerHTML = '<div class="out"><span class="loading">Searching</span></div>';
+  const result = await ai(`Find the latest signals about ${curAcct.name} UK retailer useful as B2B outreach hooks. ${q?'Focus on: '+q:'Focus on: news, leadership changes, hiring, financial results, LinkedIn posts.'} For each: what happened, why it matters, specific hook for email opener. Signal strength High/Medium/Low. Real names, dates, figures.`, SYS, true);
+  el.innerHTML = `<div class="card"><div class="oh"><span class="ol">Signals found</span><button class="cpbtn" onclick="cp('sx-t')">copy</button></div><div class="out" id="sx-t">${result}</div></div>
+  <button class="btn btn-sm" style="margin-top:8px" onclick="lhook(document.getElementById('sx-t').textContent)">Load as hook into sequence →</button>`;
+}
+
+function lhook(t) { pendingHook = t.substring(0,300); setTab('sequence'); }
+
+// SEQUENCE
+function rSeq() {
+  if (!curAcct) return '';
+  const a = curAcct, type = seqType(a.status), ts = SQ[type] || SQ.cold;
+  let h = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <span class="pill ${STATUS_PILLS[a.status]||'p-gray'}">${STATUS_LABELS[a.status]||'Target'}</span>
+    <span style="font-size:11px;color:var(--text3)">${ts.length} touches · 14–28 days</span>
+    <button class="btn btn-sm btn-p" style="margin-left:auto" onclick="gAll()">Generate all ↗</button>
+  </div>
+  <div class="hint"><strong style="color:var(--text)">Hook:</strong> ${a.pain||'Add pain point in account settings'}<br><strong style="color:var(--text)">Persona:</strong> ${a.persona||'Add persona in account settings'}</div>`;
+  if (pendingHook) h += `<div class="hb"><span><strong>Signal loaded:</strong> ${pendingHook.substring(0,150)}${pendingHook.length>150?'...':''}</span><button onclick="pendingHook='';renderPane()">×</button></div>`;
+  ts.forEach((t,i) => {
+    const done = genSeq[i];
+    h += `<div class="tc"><div class="th" onclick="tt(${i})">
+      <span class="td-day">${t.day}</span><span class="tn">${t.name}</span>
+      ${done?'<span class="tdn">✓</span>':''}
+      <span class="ct ${t.cls}">${t.ch}</span>
+    </div>
+    <div class="tb${openT[i]?' open':''}" id="tb-${i}">
+      <div class="tg">${t.g}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${done?'10px':'0'}">
+        <button class="btn btn-sm btn-p" onclick="gT(${i},event)">Generate ↗</button>
+        ${done?`<button class="btn btn-sm" onclick="chkT(${i})">Check RWOS →</button>`:''}
+      </div>
+      <div id="to-${i}">${done?`<div class="oh" style="margin-top:10px"><span class="ol">Copy</span><button class="cpbtn" onclick="cp('tt-${i}')">copy</button></div><div class="out" id="tt-${i}">${done}</div>`:''}</div>
+    </div></div>`;
+  });
+  return h;
+}
+
+function tt(i){openT[i]=!openT[i];const el=document.getElementById('tb-'+i);if(el)el.className='tb'+(openT[i]?' open':'');}
+function chkT(i){const t=genSeq[i];if(!t)return;setTab('checker');setTimeout(()=>{const el=document.getElementById('ckin');if(el){el.value=t;runChk();}},100);}
+
+async function gT(idx,e) {
+  e.stopPropagation();
+  if (!curAcct) return;
+  const a=curAcct, type=seqType(a.status), t=SQ[type][idx];
+  openT[idx]=true;
+  const oel=document.getElementById('to-'+idx);
+  if(oel)oel.innerHTML='<div class="out" style="margin-top:10px"><span class="loading">Writing</span></div>';
+  const prev=Object.entries(genSeq).filter(([k])=>parseInt(k)<idx).map(([k,v])=>`Touch ${parseInt(k)+1}:\n${v}`).join('\n\n');
+  const hook=pendingHook?`\nUse this live signal as hook: ${pendingHook}`:'';
+  const p=`Write touch ${idx+1} for ${a.name}, ${t.name} ${t.ch}.\nContext: ${a.context||''}\nPain: ${a.pain||''}\nPersona: ${a.persona||''}\nSignals: ${(a.signals||[]).join('; ')}${hook}\nGuidance: ${t.g}\n${prev?`Previous touches:\n${prev}`:''}\nWrite only the copy. For email: Subject: then blank line then body.`;
+  const r=await ai(p,SYS);
+  genSeq[idx]=r;
+  renderPane();openT[idx]=true;
+  const tb=document.getElementById('tb-'+idx);if(tb)tb.className='tb open';
+  const to=document.getElementById('to-'+idx);
+  if(to)to.innerHTML=`<div class="oh" style="margin-top:10px"><span class="ol">Copy</span><button class="cpbtn" onclick="cp('tt-${idx}')">copy</button></div><div class="out" id="tt-${idx}">${r}</div>`;
+}
+
+async function gAll(){if(!curAcct)return;const type=seqType(curAcct.status);for(let i=0;i<SQ[type].length;i++){openT[i]=true;await gT(i,{stopPropagation:()=>{}});await dl(400);}}
+
+// CONTACTS
+function rContacts() {
+  const a = curAcct;
+  return `<div class="hint">Find named contacts at ${a.name}. Connect Lusha, Apollo.io or ZoomInfo in Claude settings for verified emails and direct dials.</div>
+  <div class="g2">
+    <div class="field"><label>Company</label><input id="ctco" value="${a.name}"/></div>
+    <div class="field"><label>Title / function</label><input id="cttt" value="${a.persona||'Head of Ecommerce, CTO, CDO'}"/></div>
+  </div>
+  <div class="g2">
+    <div class="field"><label>Seniority</label><select id="ctsen"><option>Director and above</option><option>VP and above</option><option>Manager and above</option></select></div>
+    <div class="field"><label>How many</label><select id="ctn"><option value="3">Top 3</option><option value="5">Top 5</option></select></div>
+  </div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="fC(false)">Find contacts ↗</button>
+    <button class="btn" onclick="fC(true)">Find + draft outreach ↗</button>
+  </div>
+  <div id="ct-r"></div>`;
+}
+
+async function fC(wo) {
+  const co=document.getElementById('ctco').value.trim();
+  const tt=document.getElementById('cttt').value.trim();
+  const n=document.getElementById('ctn').value;
+  const el=document.getElementById('ct-r');
+  el.innerHTML='<div class="out"><span class="loading">Searching for contacts</span></div>';
+  const p=`Find ${n} real named contacts at ${co} UK retailer in ${tt} roles at director level and above. For each: full name, exact title, why relevant for Rithum (supplier onboarding/fulfilment model/marketplace), LinkedIn search tip, likely email format. Search the web, check LinkedIn, company website, press releases, conference speaker lists. Real people only.${wo?' After listing, draft a personalised cold email for the top contact using RWOS rules.':''}`;
+  const r=await ai(p, SYS+'\nYou are also a B2B contact researcher. Search the web. Never invent names.', true);
+  el.innerHTML=`<div class="card"><div class="oh"><span class="ol">Contacts found</span><button class="cpbtn" onclick="cp('ct-t')">copy</button></div><div class="out" id="ct-t">${r}</div></div>`;
+}
+
+// SINGLE
+function rSingle() {
+  const a = curAcct;
+  return `<div class="hint">Generate any single touch. Research + generate finds live signals first.</div>
+  <div class="g2">
+    <div class="field"><label>Account</label><input id="snac" value="${a?a.name:''}" placeholder="e.g. Harrods"/></div>
+    <div class="field"><label>Contact name & title</label><input id="snco" placeholder="e.g. Kate Sherwood, CDO"/></div>
+  </div>
+  <div class="g2">
+    <div class="field"><label>Message type</label><select id="snty">
+      <option value="cold_email">Cold email</option><option value="bump">Bump email (1-2 sentences)</option>
+      <option value="li_connect">LinkedIn connection request</option><option value="li_msg">LinkedIn follow-up</option>
+      <option value="someone_else">Is there someone else? email</option><option value="breakup">Break-up email</option>
+      <option value="vm">Voicemail script</option><option value="vm_followup">VM follow-up email</option>
+    </select></div>
+    <div class="field"><label>Hook / signal</label><input id="snhk" placeholder="e.g. new CDO, replatforming"/></div>
+  </div>
+  <div class="field"><label>Extra context</label><textarea id="snct" rows="2" placeholder="Any extra detail..."></textarea></div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="gSin(false)">Generate ↗</button>
+    <button class="btn" onclick="gSin(true)">Research + generate ↗</button>
+  </div>
+  <div id="sn-o" style="display:none"><div class="oh"><span class="ol">Generated</span><button class="cpbtn" onclick="cp('sn-t')">copy</button></div><div class="out" id="sn-t"></div></div>`;
+}
+
+async function gSin(dr) {
+  const ac=document.getElementById('snac').value.trim();
+  const co=document.getElementById('snco').value.trim();
+  const ty=document.getElementById('snty').value;
+  const hk=document.getElementById('snhk').value.trim();
+  const ct=document.getElementById('snct').value.trim();
+  const od=document.getElementById('sn-o');const ot=document.getElementById('sn-t');
+  od.style.display='block';ot.innerHTML='<span class="loading">Writing</span>';
+  const tl={cold_email:'cold email subject + body 100 words max',bump:'bump email 1-2 sentences',li_connect:'LinkedIn connection 300 chars max',li_msg:'LinkedIn follow-up 500 chars max',someone_else:'is there someone else email',breakup:'break-up email',vm:'voicemail 20 seconds max',vm_followup:'VM follow-up email'};
+  let res='';
+  if(dr&&!hk){ot.innerHTML='<span class="loading">Finding signals</span>';res=await ai(`Find 2-3 recent signals about ${ac} UK retailer for B2B outreach hooks. Real names, dates, figures.`,'B2B sales researcher. Search web.',true);ot.innerHTML='<span class="loading">Writing</span>';}
+  const p=`Write a ${tl[ty]} for:\nAccount: ${ac}\nContact: ${co||'unknown'}\nHook: ${hk||(res?'use signals below':'no hook')}\nContext: ${ct||curAcct?.context||'cold outreach'}\n${res?`\nLive signals:\n${res}`:''}\nWrite only the copy.`;
+  ot.innerHTML=await ai(p,SYS);
+}
+
+// IDEAS
+function rIdeas() {
+  const qi=['Marketplace CX trap — complaints still land with the retailer','Slow product induction — weeks to onboard suppliers','Stockless selling — expand assortment without stock risk','Hybrid model — false choice between dropship and marketplace','New leadership hook — CDO/CTO reviews vendors in 90 days','US to EU — apply what works in US to European market','Pets at Home proof point — closed won UK retailer','Unified Catalog speed — days not months'];
+  return `<div class="hint">Dump any idea, angle or rough message. I'll shape it into RWOS-compliant copy.</div>
+  <div class="field"><label>Account (optional)</label><input id="idac" value="${curAcct?curAcct.name:''}" placeholder="Leave blank for general"/></div>
+  <div class="field"><label>Your idea or rough message</label><textarea id="idid" rows="5" placeholder="e.g. I want to land the message that retailers using pure marketplace models are damaging their own brand..."></textarea></div>
+  <div class="g2">
+    <div class="field"><label>Output type</label><select id="idty">
+      <option value="cold_email">Cold email</option><option value="li_connect">LinkedIn connection</option>
+      <option value="li_msg">LinkedIn message</option><option value="breakup">Break-up email</option>
+      <option value="bump">Bump email</option><option value="multi">Email + LinkedIn both</option>
+      <option value="subjects">5 subject lines</option><option value="openers">5 opening lines</option>
+    </select></div>
+    <div class="field"><label>Tone</label><select id="idto">
+      <option value="">Direct and specific</option><option value="warm">Warmer and personal</option>
+      <option value="prov">Provocative</option><option value="data">Lead with data</option>
+      <option value="peer">Lead with peer proof</option>
+    </select></div>
+  </div>
+  <div style="margin-bottom:14px">${qi.map(t=>`<span class="itag" onclick="document.getElementById('idid').value='${t}'">${t.split(' — ')[0]}</span>`).join('')}</div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="gIdea(false)">Craft this ↗</button>
+    <button class="btn" onclick="gIdea(true)">3 variants ↗</button>
+  </div>
+  <div id="id-o" style="display:none"><div class="oh"><span class="ol">Crafted output</span><button class="cpbtn" onclick="cp('id-t')">copy</button></div><div class="out" id="id-t"></div></div>`;
+}
+
+async function gIdea(v) {
+  const ac=document.getElementById('idac').value.trim();
+  const id=document.getElementById('idid').value.trim();
+  if(!id)return;
+  const od=document.getElementById('id-o');const ot=document.getElementById('id-t');
+  od.style.display='block';ot.innerHTML='<span class="loading">Crafting</span>';
+  const ty=document.getElementById('idty').value;
+  const to=document.getElementById('idto').value;
+  const tl={cold_email:'cold email subject + body 100 words max',li_connect:'LinkedIn connection 300 chars',li_msg:'LinkedIn message 500 chars',breakup:'break-up email',bump:'bump email 1-2 sentences',multi:'a cold email AND LinkedIn connection request',subjects:'5 subject line options 1-4 words lower case each',openers:'5 opening line options under 20 words starting with their world'};
+  const tls={warm:'Warmer and personal.',prov:'Provocative, challenge their thinking.',data:'Lead with a specific data point.',peer:'Lead with peer proof.'};
+  const p=`Shape this idea into RWOS-compliant ${tl[ty]}:\nIdea: ${id}\nAccount: ${ac||'a UK retailer'}\n${to?`Tone: ${tls[to]}`:''}\n${v?'Give 3 distinct numbered variants.':''}\nOnly the copy.`;
+  ot.innerHTML=await ai(p,SYS);
+}
+
+// RWOS CHECKER
+function rChecker() {
+  return `<div class="hint">Paste any email and I'll score it against every RWOS rule before it goes out.</div>
+  <div class="field"><label>Paste your email</label><textarea id="ckin" rows="8" placeholder="Subject: your subject line&#10;&#10;Hi Name,&#10;&#10;Your body here..."></textarea></div>
+  <button class="btn btn-p" onclick="runChk()">Check against RWOS ↗</button>
+  <div id="chk-r" style="margin-top:14px"></div>`;
+}
+
+async function runChk() {
+  const em=document.getElementById('ckin').value.trim();if(!em)return;
+  const el=document.getElementById('chk-r');
+  el.innerHTML='<div class="out"><span class="loading">Checking</span></div>';
+  const p=`Score this email against RWOS rules. Return JSON only:\n{"overall":0-100,"verdict":"Pass|Needs work|Fail","checks":[{"rule":"Subject line 1-4 words","status":"pass|warn|fail","note":""},{"rule":"Subject line lower case","status":"pass|warn|fail","note":""},{"rule":"First 5-6 words hook on their world","status":"pass|warn|fail","note":""},{"rule":"Personalised to their situation","status":"pass|warn|fail","note":""},{"rule":"Social proof included","status":"pass|warn|fail","note":""},{"rule":"100 words or less","status":"pass|warn|fail","note":"word count: X"},{"rule":"CTA asks for interest not time","status":"pass|warn|fail","note":""},{"rule":"Does not start with I","status":"pass|warn|fail","note":""}],"topFix":"","rewrite":""}\nEmail:\n${em}`;
+  const raw=await ai(p,'You are an RWOS email compliance checker. Return only valid JSON.');
+  try {
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const sc=r.verdict==='Pass'?'var(--green)':r.verdict==='Needs work'?'var(--amber)':'var(--red)';
+    const sb=r.verdict==='Pass'?'rgba(76,175,130,.1)':r.verdict==='Needs work'?'rgba(245,166,35,.1)':'rgba(224,95,95,.1)';
+    let h=`<div class="sbig" style="background:${sb};border:1px solid ${sc}20"><div class="snum" style="color:${sc}">${r.overall}</div><div style="font-size:13px;margin-top:6px;font-weight:500;color:${sc}">${r.verdict}</div></div>
+    <div class="card">${(r.checks||[]).map(c=>`<div class="srow"><div style="flex:1"><div style="font-size:12px">${c.rule}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${c.note||''}</div></div><span class="spill ${c.status==='pass'?'sp':c.status==='warn'?'sw':'sf'}">${c.status==='pass'?'Pass':c.status==='warn'?'Review':'Fail'}</span></div>`).join('')}</div>`;
+    if(r.topFix)h+=`<div class="card" style="border-color:rgba(245,166,35,.3)"><div class="card-h" style="color:var(--amber)">Top fix</div><div style="font-size:12px;color:var(--text2);line-height:1.6">${r.topFix}</div></div>`;
+    if(r.rewrite)h+=`<div class="card"><div class="oh"><span class="ol">Suggested rewrite</span><button class="cpbtn" onclick="cp('ck-rw')">copy</button></div><div class="out" id="ck-rw">${r.rewrite}</div></div>`;
+    el.innerHTML=h;
+  } catch { el.innerHTML=`<div class="out">${raw}</div>`; }
+}
+
+// REPLY HANDLER
+function rReply() {
+  const ts=['positive','lukewarm','objection_price','objection_timing','objection_incumbent','refer','ghosted'];
+  const tl={positive:'Positive',lukewarm:'Lukewarm',objection_price:'Price objection',objection_timing:'Not right now',objection_incumbent:'Have a solution',refer:'Referred elsewhere',ghosted:'No reply'};
+  return `<div class="hint">Paste a prospect reply and get a RWOS-compliant follow-on response.</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${ts.map(t=>`<button class="chip${replyType===t?' active':''}" onclick="sRT(this,'${t}')">${tl[t]}</button>`).join('')}</div>
+  <div class="g2">
+    <div class="field"><label>Account</label><input id="rpac" value="${curAcct?curAcct.name:''}" placeholder="Company"/></div>
+    <div class="field"><label>Contact</label><input id="rpco" placeholder="Name, title"/></div>
+  </div>
+  <div class="field"><label>Their reply</label><textarea id="rpry" rows="4" placeholder="Paste their exact reply..."></textarea></div>
+  <div class="field"><label>Context (optional)</label><textarea id="rpct" rows="2" placeholder="What stage, previous interactions..."></textarea></div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="hRep(false)">Draft response ↗</button>
+    <button class="btn" onclick="hRep(true)">3 variants ↗</button>
+  </div>
+  <div id="rp-o" style="display:none"><div class="oh"><span class="ol">Response draft</span><button class="cpbtn" onclick="cp('rp-t')">copy</button></div><div class="out" id="rp-t"></div></div>`;
+}
+
+function sRT(el,t){replyType=t;renderPane();}
+
+async function hRep(v) {
+  const ac=document.getElementById('rpac').value.trim();
+  const co=document.getElementById('rpco').value.trim();
+  const ry=document.getElementById('rpry').value.trim();
+  const ct=document.getElementById('rpct').value.trim();
+  const od=document.getElementById('rp-o');const ot=document.getElementById('rp-t');
+  od.style.display='block';ot.innerHTML='<span class="loading">Drafting</span>';
+  const gs={positive:'They are interested. Move toward next step, ask for interest not a meeting time.',lukewarm:'Not no but not yes. Acknowledge, add value, re-frame urgency.',objection_price:'Do not defend price. Re-frame around Return, quantify cost of the problem.',objection_timing:'Acknowledge timing. Ask what would need to change. Stay in play.',objection_incumbent:'Do not attack current solution. Ask about flexibility — can they run both models?',refer:'Thank them. Ask for warm intro. Keep them as champion.',ghosted:'Re-engage with new angle. Curiosity not guilt.'};
+  const p=`Draft a RWOS-compliant ${v?'3 variants of a ':''}follow-on response:\nAccount: ${ac}\nContact: ${co}\nReply type: ${replyType}\nTheir reply: ${ry||'no reply'}\nContext: ${ct}\nGuide: ${gs[replyType]}\n${v?'Number variants 1-3 with labels.':''}\nShort, specific, RWOS-compliant.`;
+  ot.innerHTML=await ai(p,SYS);
+}
+
+// SUBJECT A/B
+function rSubjects() {
+  return `<div class="hint">Generate 5 subject line variants. Test them, track what converts.</div>
+  <div class="g2">
+    <div class="field"><label>Account</label><input id="sbac" value="${curAcct?curAcct.name:''}" placeholder="Company"/></div>
+    <div class="field"><label>Core angle</label><input id="sban" placeholder="e.g. supplier onboarding, marketplace CX"/></div>
+  </div>
+  <div class="field"><label>Signal / hook (optional)</label><input id="sbhk" placeholder="e.g. new CDO, replatforming, Q4 results"/></div>
+  <button class="btn btn-p" onclick="gSub()">Generate 5 variants ↗</button>
+  <div id="sb-r" style="margin-top:14px"></div>`;
+}
+
+async function gSub() {
+  const ac=document.getElementById('sbac').value.trim();
+  const an=document.getElementById('sban').value.trim();
+  const hk=document.getElementById('sbhk').value.trim();
+  const el=document.getElementById('sb-r');
+  el.innerHTML='<div class="out"><span class="loading">Generating</span></div>';
+  const p=`Generate exactly 5 subject line variants for cold outreach to ${ac||'a UK retailer'}.\nAngle: ${an||'Rithum retail platform'}\nHook: ${hk||'none'}\nRules: Every subject 1-4 words, lower case. Each a different approach. Label each [curiosity], [pain], [peer proof], [signal], or [direct].\nReturn only 5 lines with labels. Nothing else.`;
+  const r=await ai(p,SYS);
+  const ls=r.split('\n').filter(l=>l.trim());
+  let h='';
+  ls.forEach((l,i)=>{
+    const lm=l.match(/\[(.+?)\]/);const lab=lm?lm[1]:'option '+(i+1);
+    const s=l.replace(/\[.+?\]/,'').replace(/^\d+[.\)]\s*/,'').trim();
+    if(!s)return;
+    h+=`<div class="svrow"><span class="svtag">${lab}</span><span class="svtxt">${s}</span><button class="btn btn-sm" onclick="navigator.clipboard.writeText('${s.replace(/'/g,"\\'")}')">copy</button></div>`;
+  });
+  el.innerHTML=h||`<div class="out">${r}</div>`;
+}
+
+// NOTES
+function rNotes() {
+  const a = curAcct;
+  const notes = a.notes || '';
+  return `<div class="hint">Your private notes for this account. Saved automatically.</div>
+  <div class="field"><label>Notes</label><textarea id="notes-ta" rows="15" placeholder="Add your notes, call outcomes, next steps, stakeholder intel..." style="resize:vertical">${notes}</textarea></div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="saveNotes()">Save notes</button>
+    <button class="btn" onclick="aiNotes()">AI: suggest next steps ↗</button>
+  </div>
+  <div id="notes-out"></div>`;
+}
+
+async function saveNotes() {
+  const val = document.getElementById('notes-ta').value;
+  await updateAccount(curAcct.id, { notes: val });
+  curAcct.notes = val;
+  const el = document.getElementById('notes-out');
+  el.innerHTML = '<div style="font-size:12px;color:var(--teal);padding:4px 0">Saved ✓</div>';
+  setTimeout(()=>el.innerHTML='',2000);
+}
+
+async function aiNotes() {
+  const notes = document.getElementById('notes-ta').value;
+  const el = document.getElementById('notes-out');
+  el.innerHTML = '<div class="out" style="margin-top:10px"><span class="loading">Thinking</span></div>';
+  const result = await ai(`Based on these account notes for ${curAcct.name}, suggest 3 specific next actions:\n\nNotes:\n${notes}\n\nAccount context: ${curAcct.context||''}\nStatus: ${curAcct.status||''}\n\nBe specific, actionable, RWOS-aware.`, SYS);
+  el.innerHTML = `<div style="margin-top:10px"><div class="oh"><span class="ol">Suggested next steps</span><button class="cpbtn" onclick="cp('notes-ai')">copy</button></div><div class="out" id="notes-ai">${result}</div></div>`;
+}
+
+// RULES
+function rRules() {
+  const er=[['Subject: 1-4 words, lower case','lower case outperforms by 11%'],['First 5-6 words hook on THEIR situation','not Rithum, their world first'],['Personalised to their world','5x reply rates'],['Social proof: 1-2 sentences','peer UK retailer — Pets at Home is a reference'],['100 words or less','hard limit'],['CTA: interest not time','"Open to learning more?" never "Can we book 30 mins?"'],['Never start with I','start with them']];
+  const cr=[['~6 touches over 14-28 days','for maximum effectiveness'],['Mix email + LinkedIn + phone','never single channel'],['Bump: 1-2 sentences','2-3 days after personalised email'],['Same-day multi-touch','call + VM + email = 3x response rates'],['Break-up email','89% reply rate lift'],['Is there someone else? email','keeps you in play']];
+  const lr=[['Connection: 300 chars max','human, no pitch'],['Follow-up: 500 chars max','insight before ask'],['Send same day as email','multi-touch maximises visibility']];
+  const s=(t,rs,c)=>`<div class="card"><div class="card-h">${t}</div>${rs.map(([r,n])=>`<div class="ri"><div class="rdot" style="background:${c}"></div><div class="rtxt"><strong>${r}</strong> — ${n}</div></div>`).join('')}</div>`;
+  return s('Email rules',er,'var(--accent)')+s('Cadence rules',cr,'var(--teal)')+s('LinkedIn rules',lr,'var(--amber)');
+}
+
+// ─── ADD ACCOUNT MODAL ────────────────────────────────────────────────────────
+function showAddModal() {
+  const m = document.createElement('div');
+  m.className = 'modal-bg';
+  m.id = 'add-modal';
+  m.innerHTML = `<div class="modal">
+    <div class="modal-title">Add account</div>
+    <div class="g2">
+      <div class="field"><label>Company name *</label><input id="m-name" placeholder="e.g. Harrods"/></div>
+      <div class="field"><label>Status *</label>
+        <select id="m-status">
+          <option value="cold">Cold target</option>
+          <option value="open">Open opp</option>
+          <option value="nurture">Open opp — multithread</option>
+          <option value="eu">US customer → EU expansion</option>
+          <option value="won">Closed won customer</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Key persona / contact titles</label><input id="m-persona" placeholder="e.g. Head of Ecommerce, CDO, CTO"/></div>
+    <div class="field"><label>Context & background</label><textarea id="m-ctx" rows="3" placeholder="What do you know about them? Current situation, why they matter, any relevant history..."></textarea></div>
+    <div class="field"><label>Key pain / hook</label><textarea id="m-pain" rows="2" placeholder="What's their main challenge that Rithum solves? e.g. slow supplier onboarding, locked into marketplace model..."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" onclick="submitAdd()">Add account</button>
+    </div>
+  </div>`;
+  m.addEventListener('click', e => { if(e.target===m) closeModal(); });
+  document.body.appendChild(m);
+  setTimeout(()=>document.getElementById('m-name').focus(),50);
+}
+
+function closeModal() { const m=document.getElementById('add-modal'); if(m) m.remove(); }
+
+async function submitAdd() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { document.getElementById('m-name').style.borderColor='var(--red)'; return; }
+  const data = {
+    name,
+    status: document.getElementById('m-status').value,
+    persona: document.getElementById('m-persona').value.trim(),
+    context: document.getElementById('m-ctx').value.trim(),
+    pain: document.getElementById('m-pain').value.trim(),
+    signals: [], notes: ''
+  };
+  const acct = await addAccount(data);
+  closeModal();
+  goAcct(acct.id);
+}
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+async function ai(prompt, sys, ws=false) {
+  try {
+    const body = { model:'claude-haiku-4-5', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] };
+    if (ws) body.tools = [{type:'web_search_20250305',name:'web_search'}];
+    const r = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json','x-token':TOKEN}, body:JSON.stringify(body) });
+    const d = await r.json();
+    if (d.error) return 'Error: '+(typeof d.error === 'object' ? JSON.stringify(d.error) : d.error);
+    if (d.content && Array.isArray(d.content)) {
+      const raw = d.content.filter(b => b.type === 'text').map(b => b.text).join('').trim() || 'No response.';
+      return formatOutput(raw);
+    }
+    return 'No response.';
+  } catch(e) { return 'Error: '+e.message; }
+}
+
+
+
+async function rDigest() {
+  const el = document.getElementById('content');
+  el.innerHTML = '<div class="hint">Loading your morning brief<span class="loading"></span></div>';
+  try {
+    const r = await fetch('/api/digest', { headers: {'x-token': TOKEN} });
+    const d = await r.json();
+    const digest = d.digest;
+    const lastScan = d.lastCompetitorScan;
+    const scannedAt = digest ? new Date(digest.generatedAt).toLocaleString('en-GB', {dateStyle:'short',timeStyle:'short'}) : null;
+    let h = '';
+    if (!digest) {
+      h = `<div class="card">
+        <div class="card-h">Morning brief</div>
+        <div style="text-align:center;padding:30px 20px">
+          <div style="font-size:28px;margin-bottom:10px">☀️</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px">No brief generated yet</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:16px">The daily scan runs every weekday at 7am. Your first brief will appear tomorrow morning.</div>
+          <button class="btn btn-p" onclick="triggerManualScan()">Run scan now ↗</button>
+        </div>
+      </div>`;
+    } else {
+      h = `<div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--text)">Morning brief</div>
+          <span style="font-size:10px;color:var(--text2)">Generated ${scannedAt}</span>
+          <button class="btn btn-sm" style="margin-left:auto" onclick="triggerManualScan()">Refresh ↗</button>
+        </div>
+        <div class="out" style="white-space:pre-wrap;max-height:420px;overflow-y:auto">${digest.content}</div>
+      </div>`;
+    }
+    el.innerHTML = h;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="out">Error loading digest: ${e.message}</div>`;
+  }
+}
+
+async function triggerManualScan() {
+  const el = document.getElementById('content');
+  el.innerHTML = '<div class="hint">Triggering scan across all your accounts<span class="loading"></span><br><br>This runs in the background — check back in a few minutes and refresh.</div>';
+  try {
+    await fetch('/api/scan/trigger', { method: 'POST', headers: {'x-token': TOKEN} });
+    setTimeout(() => rDigest(), 3000);
+  } catch(e) {
+    el.innerHTML = '<div class="out">Error: ' + e.message + '</div>';
+  }
+}
+
+
+function rCompetitors(){
+  return `<div class="hint">Monitor your five key competitors — news, LinkedIn posts, product launches, and early-stage deals they may be working on with your target accounts.</div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-h">Competitors tracked</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      <span class="pill p-gray" style="font-size:11px">Mirakl</span>
+      <span class="pill p-gray" style="font-size:11px">Marketplacer</span>
+      <span class="pill p-gray" style="font-size:11px">VirtualStock</span>
+      <span class="pill p-gray" style="font-size:11px">Tradebyte</span>
+      <span class="pill p-gray" style="font-size:11px">ChannelEngine</span>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Scan type</label>
+        <select id="comp-type">
+          <option value="all">All activity</option>
+          <option value="news">News &amp; announcements</option>
+          <option value="linkedin">LinkedIn &amp; social posts</option>
+          <option value="wins">Customer wins &amp; case studies</option>
+          <option value="product">Product launches &amp; updates</option>
+          <option value="targeting">Accounts they may be targeting</option>
+        </select>
+      </div>
+      <div class="field"><label>Focus on</label>
+        <select id="comp-focus">
+          <option value="all">All five competitors</option>
+          <option value="Mirakl">Mirakl</option>
+          <option value="Marketplacer">Marketplacer</option>
+          <option value="VirtualStock">VirtualStock</option>
+          <option value="Tradebyte">Tradebyte</option>
+          <option value="ChannelEngine">ChannelEngine</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="scanComps()">Scan for activity ↗</button>
+    <button class="btn" onclick="scanEarlyDeals()">Find early-stage deals ↗</button>
+  </div>
+  <div id="comp-out"></div>`;
+}
+
+async function scanComps(){
+  const type = document.getElementById('comp-type').value;
+  const focus = document.getElementById('comp-focus').value;
+  const el = document.getElementById('comp-out');
+  el.innerHTML='<div class="out" style="margin-top:14px"><span class="loading">Scanning competitor activity</span></div>';
+  const comps = focus==='all'?'Mirakl, Marketplacer, VirtualStock, Tradebyte, ChannelEngine':focus;
+  const typeMap={
+    all:'news, LinkedIn posts, product announcements, customer wins, and any public activity',
+    news:'recent news, press releases, funding announcements, and media coverage',
+    linkedin:'LinkedIn posts, executive commentary, thought leadership, and social media activity',
+    wins:'customer wins, new logos, case studies, testimonials, and partnership announcements',
+    product:'product launches, feature announcements, platform updates, and new capabilities',
+    targeting:'which retailers or brands they appear to be actively targeting or recently signed'
+  };
+  const accts = ACCOUNTS.length>0?ACCOUNTS.map(a=>a.name).join(', '):'Argos, Harrods, Halfords, Ocado, AO, Footasylum, Wickes, Selfridges, The Very Group, JD Sports';
+  const prompt = `You are a competitive intelligence analyst for Rithum, a retail commerce platform. Research these competitors: ${comps}.
+
+Find their latest ${typeMap[type]}.
+
+For each signal found return:
+1. Competitor name
+2. What happened — specific, with dates and names where possible
+3. Why it matters for the Rithum sales team
+4. How to use it — either as a differentiator in prospect conversations, or as a deal-interception signal
+
+Also flag any activity suggesting they are engaging with these specific Rithum target accounts: ${accts}
+
+Rate each: High / Medium / Low urgency. Be specific and use real web search results.`;
+
+  const result = await ai(prompt, SYS, true);
+  el.innerHTML=`<div style="margin-top:14px"><div class="oh"><span class="ol">Competitor intelligence</span><button class="cpbtn" onclick="cp('comp-t')">copy</button></div><div class="out" id="comp-t">${result}</div></div>`;
+}
+
+async function scanEarlyDeals(){
+  const focus = document.getElementById('comp-focus').value;
+  const el = document.getElementById('comp-out');
+  el.innerHTML='<div class="out" style="margin-top:14px"><span class="loading">Scanning for early-stage deals</span></div>';
+  const comps = focus==='all'?'Mirakl, Marketplacer, VirtualStock, Tradebyte, ChannelEngine':focus;
+  const accts = ACCOUNTS.length>0?ACCOUNTS.map(a=>a.name).join(', '):'Argos, Harrods, Halfords, Ocado, AO, Footasylum, Wickes, Selfridges, The Very Group, JD Sports, Costco, Signet, Halfords, The Entertainer';
+  const prompt = `You are a competitive intelligence analyst for Rithum. Identify early-stage signals that ${comps} may be in active conversations or early deal stages with UK retailers.
+
+Search for:
+- Job postings at UK retailers that mention these competitor platforms by name
+- LinkedIn posts from retailer employees referencing these platforms
+- Conference appearances, webinars, or joint announcements between these competitors and retailers
+- Any partnerships, pilots, or integrations announced or hinted at publicly
+- RFP or procurement signals at these specific accounts: ${accts}
+
+For each signal return:
+1. The retailer account and what you found
+2. Deal stage confidence: Confirmed / Likely in conversation / Early signal
+3. Urgency for Rithum to act: days / weeks / months
+4. Specific outreach angle Rithum should use to get in front of this retailer NOW — before the deal closes
+
+Be specific. Use web search. Focus on actionable intelligence that helps the Rithum team intercept deals.`;
+
+  const result = await ai(prompt, SYS, true);
+  el.innerHTML=`<div style="margin-top:14px"><div class="oh"><span class="ol">Early-stage deal signals</span><button class="cpbtn" onclick="cp('comp-deals-t')">copy</button></div><div class="out" id="comp-deals-t">${result}</div></div>`;
+}
+
+function cp(id){const el=document.getElementById(id);if(el)navigator.clipboard.writeText(el.textContent).catch(()=>{});}
+function dl(ms){return new Promise(r=>setTimeout(r,ms));}
+function formatOutput(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;color:var(--accent);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em">$1</div>')
+    .replace(/^## (.+)$/gm, '<div style="font-size:15px;font-weight:700;color:var(--text);margin:16px 0 8px">$1</div>')
+    .replace(/^# (.+)$/gm, '<div style="font-size:17px;font-weight:700;color:var(--text);margin:16px 0 8px">$1</div>')
+    .replace(/^[-•] (.+)$/gm, '<div style="display:flex;gap:10px;padding:4px 0"><span style="color:var(--accent);flex-shrink:0">▸</span><span>$1</span></div>')
+    .replace(/^\d+\. (.+)$/gm, '<div style="display:flex;gap:10px;padding:4px 0"><span style="color:var(--teal);flex-shrink:0;font-weight:600;font-family:var(--mono)">→</span><span>$1</span></div>')
+    .replace(/\n\n/g, '<div style="height:10px"></div>')
+    .replace(/\n/g, '<br>');
+}</script>
+</body>
+</html>
