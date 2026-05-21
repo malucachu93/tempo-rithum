@@ -157,14 +157,32 @@ async function runScan(accountsDB, saveData, TEAM, username, role) {
 }
 
 function startScheduler(accountsDB, saveData, TEAM) {
-  console.log(`\n  ✓ Scheduler active — daily scan at ${SCAN_TIME} (weekdays)\n`);
+  console.log(`\n  ✓ Scheduler active — daily scan at ${SCAN_TIME} (weekdays, fallback only)\n`);
 
   cron.schedule(SCAN_TIME, async () => {
-    console.log(`\n[${timestamp()}] Starting daily signal scan...`);
+    console.log(`\n[${timestamp()}] 7am check — verifying overnight cache...`);
     const allAccounts = Object.entries(accountsDB).filter(([k]) => k !== '_scans').flatMap(([, v]) => v);
     if (allAccounts.length === 0) { console.log('  No accounts to scan yet. Skipping.'); return; }
+
+    // Check if overnight signal scan ran successfully (cache is fresh)
+    try {
+      const { getCacheEntry } = require('./lib/overnight-scheduler');
+      // Sample the first account — if it has a fresh cache entry the overnight job ran
+      const firstAcct = allAccounts[0];
+      if (firstAcct) {
+        const cached = await getCacheEntry(firstAcct.id, 'signals');
+        if (cached) {
+          console.log(`[${timestamp()}] Overnight cache is fresh — skipping 7am fallback scan.\n`);
+          return;
+        }
+      }
+    } catch (e) {
+      // Cache check failed (e.g. no DB) — proceed with scan as normal
+    }
+
+    console.log(`[${timestamp()}] No overnight cache found — running fallback scan...`);
     await runScan(accountsDB, saveData, TEAM, null, 'Manager');
-    console.log(`[${timestamp()}] Daily scan complete\n`);
+    console.log(`[${timestamp()}] Fallback scan complete\n`);
   });
 
   cron.schedule('0 * * * *', () => {
